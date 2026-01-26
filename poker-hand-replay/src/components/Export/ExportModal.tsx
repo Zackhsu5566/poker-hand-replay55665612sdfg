@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useVideoExport } from "@/hooks/useVideoExport";
+import { useVideoExport, getFileExtension } from "@/hooks/useVideoExport";
 import type { HandHistory, ExportOptions, ExportResolution, PlaybackSpeed } from "@/types";
 
 interface ExportModalProps {
@@ -9,7 +9,7 @@ interface ExportModalProps {
 }
 
 export function ExportModal({ hand, onClose }: ExportModalProps) {
-    const { exportVideo, progress, isExporting, downloadUrl, reset } = useVideoExport();
+    const { exportVideo, progress, isExporting, downloadUrl, mimeType, reset } = useVideoExport();
 
     const [options, setOptions] = useState<ExportOptions>({
         resolution: '1080x1080',
@@ -27,7 +27,7 @@ export function ExportModal({ hand, onClose }: ExportModalProps) {
 
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = `poker-hand-${hand.id}.webm`;
+        a.download = `poker-hand-${hand.id}.${getFileExtension(mimeType)}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -210,6 +210,18 @@ export function ExportModal({ hand, onClose }: ExportModalProps) {
                                     className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900"
                                 />
                                 <span className="text-slate-300 text-sm">Include title card</span>
+                            </label>
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={options.includeHeroReveal}
+                                    onChange={(e) => setOptions(prev => ({ ...prev, includeHeroReveal: e.target.checked }))}
+                                    className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900"
+                                />
+                                <div>
+                                    <span className="text-slate-300 text-sm">Show hero cards throughout</span>
+                                    <p className="text-slate-500 text-xs">When off, hero cards are hidden until the final frame</p>
+                                </div>
                             </label>
                         </div>
 

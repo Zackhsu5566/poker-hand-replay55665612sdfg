@@ -22,11 +22,15 @@ const COLORS = {
     chipGoldLight: '#fbbf24',
 };
 
-interface RenderOptions {
+export interface RenderOptions {
     width: number;
     height: number;
-    showTitleCard?: boolean;
-    titleText?: string;
+    hideHeroCards?: boolean;
+}
+
+// Compute scale factor based on canvas dimensions (reference: 600px min dimension)
+function getScale(width: number, height: number): number {
+    return Math.min(width, height) / 600;
 }
 
 // Main render function
@@ -37,6 +41,8 @@ export function renderFrame(
     options: RenderOptions
 ): void {
     const { width, height } = options;
+    const scale = getScale(width, height);
+    const hideHeroCards = options.hideHeroCards ?? false;
 
     // Clear and draw background
     ctx.fillStyle = COLORS.background;
@@ -48,11 +54,9 @@ export function renderFrame(
     let tableWidth: number, tableHeight: number;
 
     if (width / height > tableAspect) {
-        // Width is wider, constrain by height
         tableHeight = height - padding * 2;
         tableWidth = tableHeight * tableAspect;
     } else {
-        // Height is taller, constrain by width
         tableWidth = width - padding * 2;
         tableHeight = tableWidth / tableAspect;
     }
@@ -61,15 +65,15 @@ export function renderFrame(
     const tableY = (height - tableHeight) / 2;
 
     // Draw felt
-    drawFelt(ctx, tableX, tableY, tableWidth, tableHeight);
+    drawFelt(ctx, tableX, tableY, tableWidth, tableHeight, scale);
 
     // Draw community cards
     const centerX = tableX + tableWidth / 2;
     const centerY = tableY + tableHeight / 2;
-    drawCommunityCards(ctx, snapshot.communityCards, centerX, centerY - tableHeight * 0.05);
+    drawCommunityCards(ctx, snapshot.communityCards, centerX, centerY - tableHeight * 0.05, scale);
 
     // Draw pot
-    drawPot(ctx, snapshot.pot, centerX, centerY + tableHeight * 0.12);
+    drawPot(ctx, snapshot.pot, centerX, centerY + tableHeight * 0.12, scale);
 
     // Draw players around the table
     const players = snapshot.players;
@@ -98,13 +102,14 @@ export function renderFrame(
             isDealer,
             lastAction,
             currentBet,
-            tableWidth
+            scale,
+            hideHeroCards
         );
 
         // Draw bet chip if player has bet on current street
         if (currentBet > 0 && player.isActive) {
             const chipPos = getBetChipPosition(pos.x, pos.y, centerX, centerY, tableWidth, tableHeight, i, total);
-            drawBetChip(ctx, currentBet, chipPos.x, chipPos.y);
+            drawBetChip(ctx, currentBet, chipPos.x, chipPos.y, scale);
         }
     }
 }
@@ -157,17 +162,43 @@ export function renderTitleCard(
     }
 }
 
+// Render a solid black frame (used for fade transitions)
+export function renderBlackFrame(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number
+): void {
+    ctx.fillStyle = COLORS.background;
+    ctx.fillRect(0, 0, width, height);
+}
+
+// Render a fade overlay (alpha from 0 to 1 = transparent to opaque black)
+export function renderFadeOverlay(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    alpha: number
+): void {
+    ctx.fillStyle = `rgba(10, 10, 10, ${Math.min(1, Math.max(0, alpha))})`;
+    ctx.fillRect(0, 0, width, height);
+}
+
 function drawFelt(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
     width: number,
-    height: number
+    height: number,
+    scale: number
 ): void {
+    const borderWidth = Math.round(6 * scale);
+    const innerOffset = Math.round(4 * scale);
+    const lineWidth = Math.max(1, Math.round(2 * scale));
+
     // Outer border (rail)
     ctx.fillStyle = COLORS.border;
     ctx.beginPath();
-    ctx.ellipse(x + width / 2, y + height / 2, width / 2 + 6, height / 2 + 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + width / 2, y + height / 2, width / 2 + borderWidth, height / 2 + borderWidth, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Felt gradient
@@ -185,9 +216,9 @@ function drawFelt(
 
     // Inner ring
     ctx.strokeStyle = 'rgba(51, 65, 85, 0.3)';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = lineWidth;
     ctx.beginPath();
-    ctx.ellipse(x + width / 2, y + height / 2, width / 2 - 4, height / 2 - 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + width / 2, y + height / 2, width / 2 - innerOffset, height / 2 - innerOffset, 0, 0, Math.PI * 2);
     ctx.stroke();
 }
 
@@ -271,11 +302,12 @@ function drawCommunityCards(
     ctx: CanvasRenderingContext2D,
     cards: Card[],
     centerX: number,
-    centerY: number
+    centerY: number,
+    scale: number
 ): void {
-    const cardWidth = 48;
-    const cardHeight = 66;
-    const gap = 8;
+    const cardWidth = Math.round(48 * scale);
+    const cardHeight = Math.round(66 * scale);
+    const gap = Math.round(8 * scale);
     const totalWidth = cardWidth * 5 + gap * 4;
     const startX = centerX - totalWidth / 2;
 
@@ -289,10 +321,12 @@ function drawPot(
     ctx: CanvasRenderingContext2D,
     amount: number,
     x: number,
-    y: number
+    y: number,
+    scale: number
 ): void {
+    const fontSize = Math.round(14 * scale);
     ctx.fillStyle = COLORS.pot;
-    ctx.font = 'bold 14px monospace';
+    ctx.font = `bold ${fontSize}px monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`POT: ${amount} BB`, x, y);
@@ -307,13 +341,17 @@ function drawPlayerSeat(
     isDealer: boolean,
     lastAction: Action | null,
     _currentBet: number,
-    _tableWidth: number
+    scale: number,
+    hideHeroCards: boolean
 ): void {
-    const boxWidth = 100;
-    const boxHeight = 40;
-    const cardWidth = 32;
-    const cardHeight = 44;
-    const cardOverlap = 16;
+    const boxWidth = Math.round(100 * scale);
+    const boxHeight = Math.round(40 * scale);
+    const cardWidth = Math.round(32 * scale);
+    const cardHeight = Math.round(44 * scale);
+    const cardOverlap = Math.round(16 * scale);
+    const cornerRadius = Math.round(8 * scale);
+    const positionFontSize = Math.round(12 * scale);
+    const stackFontSize = Math.round(12 * scale);
 
     // Apply opacity if folded
     if (!player.isActive) {
@@ -321,13 +359,19 @@ function drawPlayerSeat(
     }
 
     // Draw cards above the box
-    const cardsY = y - cardHeight - 4;
+    const cardsY = y - cardHeight - Math.round(4 * scale);
     const cardsStartX = x - cardWidth + cardOverlap / 2;
 
     if (player.isHero && player.cards[0] && player.cards[1]) {
-        // Show hero cards face up
-        drawCard(ctx, player.cards[0], cardsStartX, cardsY, cardWidth, cardHeight, false);
-        drawCard(ctx, player.cards[1], cardsStartX + cardWidth - cardOverlap, cardsY, cardWidth, cardHeight, false);
+        if (hideHeroCards) {
+            // Show hero cards face down when hidden
+            drawCard(ctx, null, cardsStartX, cardsY, cardWidth, cardHeight, true);
+            drawCard(ctx, null, cardsStartX + cardWidth - cardOverlap, cardsY, cardWidth, cardHeight, true);
+        } else {
+            // Show hero cards face up
+            drawCard(ctx, player.cards[0], cardsStartX, cardsY, cardWidth, cardHeight, false);
+            drawCard(ctx, player.cards[1], cardsStartX + cardWidth - cardOverlap, cardsY, cardWidth, cardHeight, false);
+        }
     } else if (!player.isHero) {
         // Show opponent cards face down
         drawCard(ctx, null, cardsStartX, cardsY, cardWidth, cardHeight, true);
@@ -341,27 +385,27 @@ function drawPlayerSeat(
     // Glow effect if active
     if (isActive && player.isActive) {
         ctx.shadowColor = COLORS.activeGlow;
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = Math.round(15 * scale);
     }
 
     // Box background
     ctx.fillStyle = '#0f172a'; // slate-900
-    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 8);
+    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, cornerRadius);
     ctx.fill();
 
     // Box border
     ctx.strokeStyle = isActive && player.isActive ? '#06b6d4' : COLORS.border;
-    ctx.lineWidth = 1;
-    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 8);
+    ctx.lineWidth = Math.max(1, Math.round(1 * scale));
+    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, cornerRadius);
     ctx.stroke();
 
     ctx.shadowBlur = 0;
 
     // Dealer button
     if (isDealer) {
-        const btnSize = 20;
-        const btnX = boxX + boxWidth - 6;
-        const btnY = boxY - 6;
+        const btnSize = Math.round(20 * scale);
+        const btnX = boxX + boxWidth - Math.round(6 * scale);
+        const btnY = boxY - Math.round(6 * scale);
 
         ctx.fillStyle = COLORS.dealerButton;
         ctx.beginPath();
@@ -369,11 +413,11 @@ function drawPlayerSeat(
         ctx.fill();
 
         ctx.strokeStyle = '#d1d5db';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = Math.max(1, Math.round(1 * scale));
         ctx.stroke();
 
         ctx.fillStyle = COLORS.cardBlack;
-        ctx.font = 'bold 10px sans-serif';
+        ctx.font = `bold ${Math.round(10 * scale)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('D', btnX, btnY);
@@ -381,23 +425,23 @@ function drawPlayerSeat(
 
     // Position name
     ctx.fillStyle = COLORS.text;
-    ctx.font = '12px sans-serif';
+    ctx.font = `${positionFontSize}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(player.name || player.position, x, y - 8);
+    ctx.fillText(player.name || player.position, x, y - Math.round(8 * scale));
 
     // Stack size
     ctx.fillStyle = COLORS.pot;
-    ctx.font = 'bold 12px monospace';
-    ctx.fillText(`${player.stack} BB`, x, y + 8);
+    ctx.font = `bold ${stackFontSize}px monospace`;
+    ctx.fillText(`${player.stack} BB`, x, y + Math.round(8 * scale));
 
     // Reset alpha
     ctx.globalAlpha = 1;
 
     // Action label below box
     if (lastAction) {
-        const labelY = y + boxHeight / 2 + 12;
-        drawActionBadge(ctx, lastAction, x, labelY);
+        const labelY = y + boxHeight / 2 + Math.round(12 * scale);
+        drawActionBadge(ctx, lastAction, x, labelY, scale);
     }
 }
 
@@ -405,7 +449,8 @@ function drawActionBadge(
     ctx: CanvasRenderingContext2D,
     action: Action,
     x: number,
-    y: number
+    y: number,
+    scale: number
 ): void {
     let colors: { bg: string; text: string };
     let label: string;
@@ -439,15 +484,17 @@ function drawActionBadge(
             return;
     }
 
-    ctx.font = 'bold 10px sans-serif';
+    const fontSize = Math.round(10 * scale);
+    ctx.font = `bold ${fontSize}px sans-serif`;
     const textWidth = ctx.measureText(label).width;
-    const padding = 8;
+    const padding = Math.round(8 * scale);
     const badgeWidth = textWidth + padding * 2;
-    const badgeHeight = 16;
+    const badgeHeight = Math.round(16 * scale);
+    const badgeRadius = Math.round(4 * scale);
 
     // Badge background
     ctx.fillStyle = colors.bg;
-    roundRect(ctx, x - badgeWidth / 2, y - badgeHeight / 2, badgeWidth, badgeHeight, 4);
+    roundRect(ctx, x - badgeWidth / 2, y - badgeHeight / 2, badgeWidth, badgeHeight, badgeRadius);
     ctx.fill();
 
     // Badge text
@@ -461,9 +508,10 @@ function drawBetChip(
     ctx: CanvasRenderingContext2D,
     amount: number,
     x: number,
-    y: number
+    y: number,
+    scale: number
 ): void {
-    const chipSize = 20;
+    const chipSize = Math.round(20 * scale);
 
     // Chip gradient
     const gradient = ctx.createRadialGradient(x, y, 0, x, y, chipSize / 2);
@@ -476,15 +524,16 @@ function drawBetChip(
     ctx.fill();
 
     ctx.strokeStyle = '#fcd34d'; // amber-300
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.max(1, Math.round(2 * scale));
     ctx.stroke();
 
     // Amount text
+    const fontSize = Math.round(12 * scale);
     ctx.fillStyle = COLORS.chipGold;
-    ctx.font = 'bold 12px monospace';
+    ctx.font = `bold ${fontSize}px monospace`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(amount), x + chipSize / 2 + 4, y);
+    ctx.fillText(String(amount), x + chipSize / 2 + Math.round(4 * scale), y);
 }
 
 // Helper to get player position on the ellipse
@@ -532,7 +581,7 @@ function getBetChipPosition(
     const ndy = dy / dist;
 
     // Default offset toward pot
-    let offsetDist = tableWidth * 0.12;
+    const offsetDist = tableWidth * 0.12;
 
     // Calculate position
     let chipX = playerX + ndx * offsetDist;

@@ -1,2 +1,2 @@
 export { ExportModal } from './ExportModal';
-export { renderFrame, renderTitleCard } from './CanvasRenderer';
+export { renderFrame, renderTitleCard, renderBlackFrame, renderFadeOverlay } from './CanvasRenderer';

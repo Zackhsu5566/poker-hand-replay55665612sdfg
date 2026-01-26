@@ -35,7 +35,7 @@ export function CardPicker({ onSelect, onCancel: _onCancel, excludedCards = [] }
 
     return (
         <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 shadow-2xl max-w-sm w-full">
-            <div className="test-slate-200 font-bold mb-2">Select Card</div>
+            <div className="text-slate-200 font-bold mb-2">Select Card</div>
             {!selectedRank ? (
                 <div className="grid grid-cols-4 gap-2">
                     {RANKS.map(rank => {
