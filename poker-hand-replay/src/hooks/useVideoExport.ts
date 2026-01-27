@@ -8,7 +8,6 @@ import type {
     Street,
     ReplaySnapshot
 } from "@/types";
-import { renderFrame, renderTitleCard, renderFadeOverlay, renderBlackFrame } from "@/components/Export/CanvasRenderer";
 
 const BASE_DELAY_MS = 1500;
 const FADE_DURATION_MS = 300;
@@ -22,8 +21,15 @@ const STREET_CARD_COUNT: Record<Street, number> = {
     river: 5
 };
 
+// Callback type for capturing a DOM-rendered frame as a canvas
+export type CaptureFrameFn = (
+    snapshot: ReplaySnapshot | null,
+    hideHeroCards: boolean,
+    showTitleCard: boolean
+) => Promise<HTMLCanvasElement>;
+
 interface UseVideoExportReturn {
-    exportVideo: (hand: HandHistory, options: ExportOptions) => Promise<void>;
+    exportVideo: (hand: HandHistory, options: ExportOptions, captureFrame: CaptureFrameFn) => Promise<void>;
     progress: ExportProgress;
     isExporting: boolean;
     downloadUrl: string | null;
@@ -59,7 +65,11 @@ export function useVideoExport(): UseVideoExportReturn {
         abortRef.current = false;
     }, [downloadUrl]);
 
-    const exportVideo = useCallback(async (hand: HandHistory, options: ExportOptions) => {
+    const exportVideo = useCallback(async (
+        hand: HandHistory,
+        options: ExportOptions,
+        captureFrame: CaptureFrameFn
+    ) => {
         abortRef.current = false;
 
         // Parse resolution
@@ -67,7 +77,7 @@ export function useVideoExport(): UseVideoExportReturn {
         const width = parseInt(widthStr, 10);
         const height = parseInt(heightStr, 10);
 
-        // Create offscreen canvas
+        // Create recording canvas
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
@@ -78,7 +88,7 @@ export function useVideoExport(): UseVideoExportReturn {
             return;
         }
 
-        // Compute snapshots (replicating useReplay logic)
+        // Compute snapshots
         const snapshots = computeAllSnapshots(hand);
         const totalFrames = snapshots.length + (options.includeTitleCard ? 1 : 0);
 
@@ -103,7 +113,7 @@ export function useVideoExport(): UseVideoExportReturn {
 
         const recorder = new MediaRecorder(stream, {
             mimeType: detectedMimeType,
-            videoBitsPerSecond: 2_500_000
+            videoBitsPerSecond: 8_000_000
         });
 
         const chunks: Blob[] = [];
@@ -127,12 +137,15 @@ export function useVideoExport(): UseVideoExportReturn {
             const frameDuration = BASE_DELAY_MS / options.playbackSpeed;
             let currentFrame = 0;
 
-            // Hero reveal logic: hide hero cards unless toggle is on or it's the last frame
             const shouldHideHero = !options.includeHeroReveal;
+
+            // Prime html-to-image (first call can sometimes produce blank output)
+            await captureFrame(snapshots[0] || null, false, false);
 
             // Render title card if enabled
             if (options.includeTitleCard) {
-                renderTitleCard(ctx, hand, { width, height });
+                const titleCanvas = await captureFrame(null, false, true);
+                ctx.drawImage(titleCanvas, 0, 0, width, height);
                 await holdFrame(frameDuration);
 
                 currentFrame++;
@@ -143,9 +156,18 @@ export function useVideoExport(): UseVideoExportReturn {
                     message: 'Rendering title card...'
                 }));
 
-                // Fade to black after title card
+                // Fade out title card using cached canvas
                 if (snapshots.length > 0) {
-                    await fadeOut(ctx, () => renderTitleCard(ctx, hand, { width, height }), width, height);
+                    for (let step = 1; step <= FADE_STEPS; step++) {
+                        ctx.drawImage(titleCanvas, 0, 0, width, height);
+                        ctx.fillStyle = `rgba(10, 10, 10, ${step / FADE_STEPS})`;
+                        ctx.fillRect(0, 0, width, height);
+                        await holdFrame(FRAME_INTERVAL_MS);
+                    }
+                    // Solid black
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.fillRect(0, 0, width, height);
+                    await holdFrame(FRAME_INTERVAL_MS);
                 }
             }
 
@@ -160,20 +182,34 @@ export function useVideoExport(): UseVideoExportReturn {
                 const isLastFrame = i === snapshots.length - 1;
                 const hideHeroCards = shouldHideHero && !isLastFrame;
 
-                const renderOpts = { width, height, hideHeroCards };
+                // Capture the DOM-rendered frame once
+                const frameCanvas = await captureFrame(snapshot, hideHeroCards, false);
 
-                // Fade in from black (for first frame after title, or after previous frame's fade-out)
+                // Fade in from black
                 if (i === 0 && options.includeTitleCard) {
-                    await fadeIn(ctx, () => renderFrame(ctx, snapshot, hand, renderOpts), width, height);
+                    for (let step = FADE_STEPS; step >= 0; step--) {
+                        ctx.drawImage(frameCanvas, 0, 0, width, height);
+                        if (step > 0) {
+                            ctx.fillStyle = `rgba(10, 10, 10, ${step / FADE_STEPS})`;
+                            ctx.fillRect(0, 0, width, height);
+                        }
+                        await holdFrame(FRAME_INTERVAL_MS);
+                    }
                 } else if (i > 0) {
-                    // Fade in from the black left by previous frame's fade-out
-                    await fadeIn(ctx, () => renderFrame(ctx, snapshot, hand, renderOpts), width, height);
+                    for (let step = FADE_STEPS; step >= 0; step--) {
+                        ctx.drawImage(frameCanvas, 0, 0, width, height);
+                        if (step > 0) {
+                            ctx.fillStyle = `rgba(10, 10, 10, ${step / FADE_STEPS})`;
+                            ctx.fillRect(0, 0, width, height);
+                        }
+                        await holdFrame(FRAME_INTERVAL_MS);
+                    }
                 } else {
-                    // First frame, no title card — just render directly
-                    renderFrame(ctx, snapshot, hand, renderOpts);
+                    // First frame, no title card
+                    ctx.drawImage(frameCanvas, 0, 0, width, height);
                 }
 
-                // Hold frame for the duration
+                // Hold frame
                 await holdFrame(frameDuration);
 
                 currentFrame++;
@@ -184,13 +220,21 @@ export function useVideoExport(): UseVideoExportReturn {
                     message: `Rendering frame ${currentFrame} of ${totalFrames}...`
                 }));
 
-                // Fade to black (unless this is the last frame)
+                // Fade out (unless last frame), using the cached canvas
                 if (!isLastFrame) {
-                    await fadeOut(ctx, () => renderFrame(ctx, snapshot, hand, renderOpts), width, height);
+                    for (let step = 1; step <= FADE_STEPS; step++) {
+                        ctx.drawImage(frameCanvas, 0, 0, width, height);
+                        ctx.fillStyle = `rgba(10, 10, 10, ${step / FADE_STEPS})`;
+                        ctx.fillRect(0, 0, width, height);
+                        await holdFrame(FRAME_INTERVAL_MS);
+                    }
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.fillRect(0, 0, width, height);
+                    await holdFrame(FRAME_INTERVAL_MS);
                 }
             }
 
-            // Hold the last frame a bit longer before ending
+            // Hold the last frame a bit longer
             if (snapshots.length > 0) {
                 await holdFrame(frameDuration * 0.5);
             }
@@ -243,41 +287,6 @@ function holdFrame(durationMs: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, durationMs));
 }
 
-// Fade out: re-render the scene and progressively overlay black
-async function fadeOut(
-    ctx: CanvasRenderingContext2D,
-    renderScene: () => void,
-    width: number,
-    height: number
-): Promise<void> {
-    for (let step = 1; step <= FADE_STEPS; step++) {
-        const alpha = step / FADE_STEPS;
-        renderScene();
-        renderFadeOverlay(ctx, width, height, alpha);
-        await holdFrame(FRAME_INTERVAL_MS);
-    }
-    // Ensure we end on solid black
-    renderBlackFrame(ctx, width, height);
-    await holdFrame(FRAME_INTERVAL_MS);
-}
-
-// Fade in: render the next scene and progressively remove black overlay
-async function fadeIn(
-    ctx: CanvasRenderingContext2D,
-    renderScene: () => void,
-    width: number,
-    height: number
-): Promise<void> {
-    for (let step = FADE_STEPS; step >= 0; step--) {
-        const alpha = step / FADE_STEPS;
-        renderScene();
-        if (alpha > 0) {
-            renderFadeOverlay(ctx, width, height, alpha);
-        }
-        await holdFrame(FRAME_INTERVAL_MS);
-    }
-}
-
 // Get supported MIME type for video recording
 function getSupportedMimeType(): string | null {
     const types = [
@@ -305,7 +314,7 @@ export function getFileExtension(mime: string | null): string {
 }
 
 // Compute all snapshots for the hand (replicating useReplay logic)
-function computeAllSnapshots(hand: HandHistory): ReplaySnapshot[] {
+export function computeAllSnapshots(hand: HandHistory): ReplaySnapshot[] {
     const snapshots: ReplaySnapshot[] = [];
 
     // Identify blind actions

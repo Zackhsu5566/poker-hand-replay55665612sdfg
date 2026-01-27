@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
+import { flushSync } from "react-dom";
+import { toCanvas } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { useVideoExport, getFileExtension } from "@/hooks/useVideoExport";
-import type { HandHistory, ExportOptions, ExportResolution, PlaybackSpeed } from "@/types";
+import { ExportFrame } from "./ExportFrame";
+import type { HandHistory, ExportOptions, ExportResolution, PlaybackSpeed, ReplaySnapshot } from "@/types";
 
 interface ExportModalProps {
     hand: HandHistory;
@@ -18,8 +21,48 @@ export function ExportModal({ hand, onClose }: ExportModalProps) {
         includeHeroReveal: false
     });
 
+    // Frame capture state
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [frameState, setFrameState] = useState<{
+        snapshot: ReplaySnapshot | null;
+        hideHeroCards: boolean;
+        showTitleCard: boolean;
+    }>({ snapshot: null, hideHeroCards: false, showTitleCard: false });
+
+    const [widthStr, heightStr] = options.resolution.split('x');
+    const exportWidth = parseInt(widthStr, 10);
+    const exportHeight = parseInt(heightStr, 10);
+
+    // Capture the DOM-rendered frame as a canvas
+    const captureFrame = useCallback(async (
+        snapshot: ReplaySnapshot | null,
+        hideHeroCards: boolean,
+        showTitleCard: boolean
+    ): Promise<HTMLCanvasElement> => {
+        // Synchronously update the rendered frame
+        flushSync(() => {
+            setFrameState({ snapshot, hideHeroCards, showTitleCard });
+        });
+
+        // Wait for browser to paint
+        await new Promise<void>(resolve => requestAnimationFrame(() => {
+            // Double rAF to ensure paint is complete
+            requestAnimationFrame(() => resolve());
+        }));
+
+        // Capture the DOM as canvas
+        const canvas = await toCanvas(containerRef.current!, {
+            width: exportWidth,
+            height: exportHeight,
+            pixelRatio: 1,
+            cacheBust: true,
+        });
+
+        return canvas;
+    }, [exportWidth, exportHeight]);
+
     const handleExport = () => {
-        exportVideo(hand, options);
+        exportVideo(hand, options, captureFrame);
     };
 
     const handleDownload = () => {
@@ -39,19 +82,42 @@ export function ExportModal({ hand, onClose }: ExportModalProps) {
     };
 
     const resolutionOptions: { value: ExportResolution; label: string }[] = [
-        { value: '1080x1080', label: 'Square (1080×1080)' },
-        { value: '1920x1080', label: 'Landscape (1920×1080)' }
+        { value: '1080x1080', label: 'Square (1080\u00d71080)' },
+        { value: '1920x1080', label: 'Landscape (1920\u00d71080)' }
     ];
 
     const speedOptions: { value: PlaybackSpeed; label: string }[] = [
-        { value: 0.5, label: '0.5×' },
-        { value: 1, label: '1×' },
-        { value: 1.5, label: '1.5×' },
-        { value: 2, label: '2×' }
+        { value: 0.5, label: '0.5\u00d7' },
+        { value: 1, label: '1\u00d7' },
+        { value: 1.5, label: '1.5\u00d7' },
+        { value: 2, label: '2\u00d7' }
     ];
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            {/* Hidden offscreen container for frame capture */}
+            <div
+                ref={containerRef}
+                style={{
+                    position: 'fixed',
+                    left: '-9999px',
+                    top: 0,
+                    width: exportWidth,
+                    height: exportHeight,
+                    overflow: 'hidden',
+                    pointerEvents: 'none',
+                }}
+            >
+                <ExportFrame
+                    snapshot={frameState.snapshot}
+                    hand={hand}
+                    width={exportWidth}
+                    height={exportHeight}
+                    hideHeroCards={frameState.hideHeroCards}
+                    showTitleCard={frameState.showTitleCard}
+                />
+            </div>
+
             <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
