@@ -172,16 +172,16 @@ function App() {
   // Show ReplayView when hand is complete
   if (view === 'replay' && hand) {
     return (
-      <div className="h-screen bg-slate-950 text-slate-50 flex flex-col font-sans selection:bg-cyan-500/30 overflow-hidden">
+      <div className="h-screen bg-slate-950 text-slate-50 flex flex-col font-sans selection:bg-poker-hero/30 overflow-hidden">
         <ReplayView hand={hand} onExit={handleExitReplay} />
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-slate-950 text-slate-50 flex flex-col font-sans selection:bg-cyan-500/30 overflow-hidden">
-      <header className="flex-shrink-0 p-3 border-b border-slate-900 flex justify-between items-center bg-slate-950/80 backdrop-blur z-50">
-        <h1 className="text-xl font-bold tracking-tight text-white">PokerStudio</h1>
+    <div className="h-screen bg-slate-950 text-slate-50 flex flex-col font-sans selection:bg-poker-hero/30 overflow-hidden">
+      <header className="flex-shrink-0 p-3 border-b border-[rgba(255,255,255,0.10)] flex justify-between items-center bg-slate-950 backdrop-blur z-50">
+        <h1 className="text-xl font-bold tracking-tight text-slate-50">PokerStudio</h1>
         {view === 'play' && (
           <div className="flex items-center gap-4">
             <span className="text-xs text-slate-500 uppercase">
@@ -189,7 +189,7 @@ function App() {
             </span>
             <button
               onClick={() => setView('setup')}
-              className="text-xs text-slate-400 hover:text-white transition-colors"
+              className="text-xs text-slate-400 hover:text-poker-hero transition-colors"
             >
               NEW HAND
             </button>
@@ -271,22 +271,22 @@ function App() {
             {/* Controller Area - Fixed at bottom */}
             <div className="flex-shrink-0">
               {/* Active Player Indicator */}
-              <div className="bg-slate-900 p-2 flex gap-2 items-center border-t border-slate-800">
-                <span className="text-xs text-slate-500 uppercase">
-                  {isManualEnd ? 'Ended:' : isAllInShowdown ? 'All-In:' : 'Action:'}
+              <div className="bg-slate-900 px-1.5 py-1 flex gap-1 items-center border-t border-slate-800">
+                <span className="text-[10px] text-slate-500 uppercase">
+                  {isManualEnd ? 'End:' : isAllInShowdown ? 'AI:' : 'Act:'}
                 </span>
                 {hand?.players.map((p, idx) => (
                   <button
                     key={p.position}
-                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
                       !p.isActive
                         ? 'bg-transparent text-slate-600 line-through'
                         : p.stack === 0
-                          ? 'bg-amber-600/80 text-white' // All-in indicator
+                          ? 'bg-poker-allin/80 text-white' // All-in indicator
                           : isManualEnd
                             ? 'bg-slate-700 text-slate-300' // No active player in manual end
                             : idx === activePlayerIndex
-                              ? 'bg-cyan-600 text-white ring-2 ring-cyan-400/50'
+                              ? 'bg-poker-hero text-white ring-2 ring-poker-hero/50'
                               : 'bg-slate-700 text-slate-300'
                       }`}
                   >
@@ -297,25 +297,25 @@ function App() {
 
               {isManualEnd ? (
                 // Manual end mode - allow optional board card selection
-                <div className="p-3 bg-slate-900 border-t border-slate-800 pb-safe">
-                  <div className="text-cyan-400 font-bold mb-1 text-center text-sm">Hand Ended</div>
-                  <p className="text-slate-400 text-xs text-center mb-3">
-                    Optionally add remaining board cards, then view replay.
+                <div className="p-2 bg-slate-900 border-t border-slate-800 pb-safe">
+                  <div className="text-poker-hero font-bold mb-0.5 text-center text-xs">Hand Ended</div>
+                  <p className="text-slate-400 text-[10px] text-center mb-2">
+                    Add remaining board cards, then view replay.
                   </p>
 
                   {/* Board card status and buttons */}
-                  <div className="flex flex-wrap gap-2 justify-center mb-3">
+                  <div className="flex flex-wrap gap-1.5 justify-center mb-2">
                     {/* Flop */}
                     {(hand?.communityCards.length || 0) < 3 ? (
                       <button
                         onClick={() => startPickingBoardForStreet('flop')}
-                        className="px-2 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs"
+                        className="px-1.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px]"
                       >
-                        + Add Flop
+                        + Flop
                       </button>
                     ) : (
-                      <span className="px-2 py-1.5 bg-slate-800 rounded text-xs text-slate-400">
-                        Flop: {hand?.communityCards.slice(0, 3).map(c => `${c.rank}${c.suit}`).join(' ')}
+                      <span className="px-1.5 py-1 bg-slate-800 rounded text-[10px] text-slate-400">
+                        {hand?.communityCards.slice(0, 3).map(c => `${c.rank}${c.suit}`).join(' ')}
                       </span>
                     )}
 
@@ -323,13 +323,13 @@ function App() {
                     {(hand?.communityCards.length || 0) >= 3 && (hand?.communityCards.length || 0) < 4 ? (
                       <button
                         onClick={() => startPickingBoardForStreet('turn')}
-                        className="px-2 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs"
+                        className="px-1.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px]"
                       >
-                        + Add Turn
+                        + Turn
                       </button>
                     ) : (hand?.communityCards.length || 0) >= 4 ? (
-                      <span className="px-2 py-1.5 bg-slate-800 rounded text-xs text-slate-400">
-                        Turn: {hand?.communityCards[3]?.rank}{hand?.communityCards[3]?.suit}
+                      <span className="px-1.5 py-1 bg-slate-800 rounded text-[10px] text-slate-400">
+                        {hand?.communityCards[3]?.rank}{hand?.communityCards[3]?.suit}
                       </span>
                     ) : null}
 
@@ -337,13 +337,13 @@ function App() {
                     {(hand?.communityCards.length || 0) >= 4 && (hand?.communityCards.length || 0) < 5 ? (
                       <button
                         onClick={() => startPickingBoardForStreet('river')}
-                        className="px-2 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs"
+                        className="px-1.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px]"
                       >
-                        + Add River
+                        + River
                       </button>
                     ) : (hand?.communityCards.length || 0) >= 5 ? (
-                      <span className="px-2 py-1.5 bg-slate-800 rounded text-xs text-slate-400">
-                        River: {hand?.communityCards[4]?.rank}{hand?.communityCards[4]?.suit}
+                      <span className="px-1.5 py-1 bg-slate-800 rounded text-[10px] text-slate-400">
+                        {hand?.communityCards[4]?.rank}{hand?.communityCards[4]?.suit}
                       </span>
                     ) : null}
                   </div>
@@ -351,20 +351,20 @@ function App() {
                   {/* View Replay button */}
                   <button
                     onClick={handleFinishAndReplay}
-                    className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white text-sm"
+                    className="w-full py-2 bg-poker-hero hover:bg-poker-hero/85 rounded-xl font-bold text-white text-sm shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
                   >
                     View Replay →
                   </button>
                 </div>
               ) : isAllInShowdown ? (
                 // All-in showdown message - no action input needed
-                <div className="p-3 bg-slate-900 border-t border-slate-800 text-center pb-safe">
-                  <div className="text-amber-400 font-bold mb-1 text-sm">All-In Showdown</div>
-                  <p className="text-slate-400 text-xs">
+                <div className="p-2 bg-slate-900 border-t border-slate-800 text-center pb-safe">
+                  <div className="text-poker-pot font-bold mb-0.5 text-xs">All-In Showdown</div>
+                  <p className="text-slate-400 text-[10px]">
                     {currentStreet === 'preflop' && 'Select flop cards to continue...'}
                     {currentStreet === 'flop' && 'Select turn card to continue...'}
                     {currentStreet === 'turn' && 'Select river card to continue...'}
-                    {currentStreet === 'river' && hand?.communityCards.length === 5 && 'Board complete! Moving to showdown...'}
+                    {currentStreet === 'river' && hand?.communityCards.length === 5 && 'Board complete!'}
                   </p>
                 </div>
               ) : (

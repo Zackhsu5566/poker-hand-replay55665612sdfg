@@ -33,11 +33,11 @@ export function ReplayControls({
     const atEnd = currentIndex >= totalActions - 1;
 
     return (
-        <div className="bg-slate-900 border-t border-slate-800 p-3 pb-safe space-y-2">
+        <div className="bg-slate-900 border-t border-[rgba(255,255,255,0.10)] p-3 pb-safe space-y-2">
             {/* Progress Bar */}
             <div className="relative h-1.5 bg-slate-700 rounded-full overflow-hidden">
                 <div
-                    className="absolute inset-y-0 left-0 bg-cyan-500 transition-all duration-300"
+                    className="absolute inset-y-0 left-0 bg-poker-hero transition-all duration-300"
                     style={{ width: `${Math.max(0, progress)}%` }}
                 />
             </div>
@@ -86,7 +86,7 @@ export function ReplayControls({
                     variant="default"
                     size="lg"
                     onClick={isPlaying ? onPause : onPlay}
-                    className="w-14 h-14 rounded-full bg-cyan-600 hover:bg-cyan-500"
+                    className="w-14 h-14 rounded-full bg-poker-hero hover:bg-poker-hero/85"
                 >
                     {isPlaying ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
@@ -114,19 +114,19 @@ export function ReplayControls({
                     </svg>
                 </Button>
 
-                {/* Spacer */}
-                <div className="w-8" />
+                {/* Spacer - hidden on very small screens */}
+                <div className="hidden xs:block w-4 sm:w-8" />
 
                 {/* Speed Controls */}
-                <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
+                <div className="flex items-center gap-0.5 xs:gap-1 bg-slate-800 rounded-lg p-0.5 xs:p-1">
                     {SPEEDS.map(speed => (
                         <Button
                             key={speed}
                             variant="ghost"
                             size="sm"
                             onClick={() => onSpeedChange(speed)}
-                            className={`px-2 py-1 text-xs font-mono ${playbackSpeed === speed
-                                    ? 'bg-cyan-600 text-white'
+                            className={`px-1.5 xs:px-2 py-1 min-h-[36px] text-xs font-mono ${playbackSpeed === speed
+                                    ? 'bg-poker-hero text-white'
                                     : 'text-slate-400 hover:text-white'
                                 }`}
                         >

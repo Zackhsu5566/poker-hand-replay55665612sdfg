@@ -34,17 +34,17 @@ export function CardPicker({ onSelect, onCancel: _onCancel, excludedCards = [] }
     };
 
     return (
-        <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 shadow-2xl max-w-sm w-full">
+        <div className="bg-slate-900 p-3 xs:p-4 rounded-lg border border-[rgba(255,255,255,0.10)] shadow-2xl max-w-sm w-full">
             <div className="text-slate-200 font-bold mb-2">Select Card</div>
             {!selectedRank ? (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-1.5 xs:gap-2">
                     {RANKS.map(rank => {
                         const fullyExcluded = isRankFullyExcluded(rank);
                         return (
                             <Button
                                 key={rank}
                                 variant="outline"
-                                className={`h-10 text-lg font-mono ${fullyExcluded ? 'opacity-30' : ''}`}
+                                className={`h-11 xs:h-12 text-lg font-mono ${fullyExcluded ? 'opacity-30' : ''}`}
                                 onClick={() => handleRankClick(rank)}
                                 disabled={fullyExcluded}
                             >
@@ -60,14 +60,14 @@ export function CardPicker({ onSelect, onCancel: _onCancel, excludedCards = [] }
                             {selectedRank}
                         </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5 xs:gap-2">
                         {SUITS.map(suit => {
                             const excluded = isCardExcluded(selectedRank, suit);
                             return (
                                 <Button
                                     key={suit}
                                     variant="outline"
-                                    className={`h-12 text-3xl ${suit === '♥' || suit === '♦' ? 'text-red-500' : 'text-slate-200'} ${excluded ? 'opacity-30' : ''}`}
+                                    className={`h-12 xs:h-14 text-3xl ${suit === '♥' || suit === '♦' ? 'text-red-500' : 'text-slate-200'} ${excluded ? 'opacity-30' : ''}`}
                                     onClick={() => handleSuitClick(suit)}
                                     disabled={excluded}
                                 >

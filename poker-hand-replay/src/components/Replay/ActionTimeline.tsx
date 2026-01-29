@@ -7,12 +7,12 @@ interface ActionTimelineProps {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-    fold: 'bg-red-500/80',
+    fold: 'bg-poker-fold/80',
     check: 'bg-slate-500',
-    call: 'bg-emerald-500/80',
-    bet: 'bg-amber-500',
-    raise: 'bg-amber-500',
-    'all-in': 'bg-purple-500'
+    call: 'bg-poker-bet/80',
+    bet: 'bg-poker-pot',
+    raise: 'bg-poker-pot',
+    'all-in': 'bg-poker-allin'
 };
 
 const STREET_LABELS: Record<Street, string> = {
@@ -33,7 +33,7 @@ export function ActionTimeline({ actions, currentIndex, onJumpTo }: ActionTimeli
                 <button
                     onClick={() => onJumpTo(-1)}
                     className={`flex-shrink-0 px-2 py-1 rounded text-xs font-mono transition-all ${currentIndex === -1
-                            ? 'bg-cyan-600 text-white ring-2 ring-cyan-400/50'
+                            ? 'bg-poker-hero text-white ring-2 ring-poker-hero/50'
                             : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
                         }`}
                 >
@@ -61,7 +61,7 @@ export function ActionTimeline({ actions, currentIndex, onJumpTo }: ActionTimeli
                             <button
                                 onClick={() => onJumpTo(idx)}
                                 className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded text-xs font-mono transition-all ${idx === currentIndex
-                                        ? 'ring-2 ring-cyan-400/50 scale-105'
+                                        ? 'ring-2 ring-poker-hero/50 scale-105'
                                         : idx < currentIndex
                                             ? 'opacity-60'
                                             : ''

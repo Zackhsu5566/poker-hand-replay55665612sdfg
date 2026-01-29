@@ -10,22 +10,21 @@ interface CardProps {
 
 export function Card({ card, hidden = false, className, size = "md" }: CardProps) {
     const sizeClasses = {
-        sm: "w-8 h-11 text-xs rounded-sm",
-        md: "w-12 h-16 text-base rounded",
-        lg: "w-16 h-24 text-xl rounded-md",
+        sm: "w-10 h-14 text-xs rounded-sm",
+        md: "w-14 h-20 text-base rounded",
+        lg: "w-20 h-28 text-xl rounded-md",
     };
 
     if (hidden) {
         return (
             <div
                 className={cn(
-                    "bg-indigo-900 border-2 border-indigo-200 shadow-sm flex items-center justify-center select-none",
-                    "bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEwIDAgTDIwIDEwIEwxMCAyMCBMMCAxMCBaIiBmaWxsPSIjNDMzOGNhIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjwvc3ZnPg==')]",
+                    "bg-[#101624] border-2 border-[rgba(43,212,182,0.25)] shadow-sm flex items-center justify-center select-none",
                     sizeClasses[size],
                     className
                 )}
             >
-                <div className="w-1/2 h-1/2 bg-indigo-500/20 rounded-full" />
+                <div className="w-1/2 h-1/2 bg-poker-hero/20 rounded-full" />
             </div>
         );
     }

@@ -180,24 +180,24 @@ export function ActionInput({
         };
 
         return (
-            <div className="flex flex-col gap-2 p-2 bg-slate-900 border-t border-slate-800">
-                <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex flex-col gap-1.5 p-1.5 bg-slate-900 border-t border-slate-800">
+                <div className="flex gap-1.5 overflow-x-auto">
                     {renderQuickButtons()}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                     <Input
                         type="number"
                         value={amount}
                         onChange={e => handleAmountChange(e.target.value)}
                         min={effectiveMinBet}
                         max={playerStack}
-                        className="text-base bg-slate-950 font-mono h-10"
+                        className="text-sm bg-slate-950 font-mono h-10"
                     />
-                    <Button onClick={submitBet} className="bg-emerald-600 font-bold w-28 h-10">
+                    <Button onClick={submitBet} className="bg-poker-bet hover:bg-poker-bet-hover font-bold w-24 h-10 rounded-xl text-sm">
                         {aggressiveActionLabel}
                     </Button>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setMode('normal')}>Cancel</Button>
+                <Button variant="ghost" size="sm" onClick={() => setMode('normal')} className="h-7 text-xs">Cancel</Button>
             </div>
         );
     }
@@ -205,17 +205,17 @@ export function ActionInput({
     // Player has no chips - can only fold (or check if allowed)
     if (playerStack <= 0) {
         return (
-            <div className="grid grid-cols-2 gap-2 p-2 bg-slate-900 border-t border-slate-800 pb-safe">
+            <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-slate-900 border-t border-slate-800 pb-safe">
                 <Button
                     variant="destructive"
-                    className="h-14 text-base font-bold bg-red-600/90 hover:bg-red-600"
+                    className="h-11 text-sm font-bold bg-poker-fold hover:bg-poker-fold-hover rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
                     onClick={() => onAction('fold')}
                 >
                     FOLD
                 </Button>
                 {canCheck && (
                     <Button
-                        className="h-14 text-base font-bold bg-slate-700 hover:bg-slate-600"
+                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
                         onClick={() => onAction('check')}
                     >
                         CHECK
@@ -233,21 +233,21 @@ export function ActionInput({
         <div className="bg-slate-900 border-t border-slate-800 pb-safe">
             {/* End Hand button */}
             {onEndHand && (
-                <div className="flex justify-end px-2 pt-1">
+                <div className="flex justify-end px-1.5 pt-0.5">
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={onEndHand}
-                        className="text-slate-400 hover:text-white text-xs"
+                        className="text-slate-400 hover:text-white text-xs h-6 px-2"
                     >
                         End Hand →
                     </Button>
                 </div>
             )}
-            <div className="grid grid-cols-4 gap-2 p-2">
+            <div className="grid grid-cols-2 xs:grid-cols-4 gap-1.5 p-1.5">
                 <Button
                     variant="destructive"
-                    className="h-14 text-base font-bold bg-red-600/90 hover:bg-red-600"
+                    className="h-11 text-sm font-bold bg-poker-fold hover:bg-poker-fold-hover rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
                     onClick={() => onAction('fold')}
                 >
                     FOLD
@@ -255,14 +255,14 @@ export function ActionInput({
 
                 {canCheck ? (
                     <Button
-                        className="h-14 text-base font-bold bg-slate-700 hover:bg-slate-600 col-span-2"
+                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 xs:col-span-2 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
                         onClick={() => onAction('check')}
                     >
                         CHECK
                     </Button>
                 ) : (
                     <Button
-                        className="h-14 text-base font-bold bg-slate-700 hover:bg-slate-600 col-span-2"
+                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 xs:col-span-2 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
                         onClick={() => onAction('call', effectiveCallAmount)}
                     >
                         {isAllInCall ? 'ALL-IN' : 'CALL'} {effectiveCallAmount > 0 && effectiveCallAmount}
@@ -270,7 +270,7 @@ export function ActionInput({
                 )}
 
                 <Button
-                    className="h-14 text-base font-bold bg-emerald-600/90 hover:bg-emerald-600"
+                    className="h-11 text-sm font-bold bg-poker-bet hover:bg-poker-bet-hover text-white col-span-2 xs:col-span-1 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
                     onClick={handleBetClick}
                     disabled={playerStack <= effectiveCallAmount}
                 >

@@ -4,7 +4,7 @@ import { ReplayControls } from "./ReplayControls";
 import { useReplay } from "@/hooks/useReplay";
 import { useEquity } from "@/hooks/useEquity";
 import { Button } from "@/components/ui/button";
-import { ExportModal } from "@/components/Export";
+import { TextExportModal } from "@/components/Export";
 import { EquityDisplay } from "@/components/Equity";
 import type { HandHistory } from "@/types";
 
@@ -71,11 +71,11 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
     return (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Header */}
-            <div className="flex-shrink-0 bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between">
+            <div className="flex-shrink-0 bg-slate-900 border-b border-[rgba(255,255,255,0.10)] px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onExit}
-                        className="text-slate-400 hover:text-white transition-colors flex items-center gap-1"
+                        className="text-slate-400 hover:text-poker-hero transition-colors flex items-center gap-1"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -127,10 +127,10 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
             {/* End of Hand Modal */}
             {showEndModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in-up">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full shadow-2xl">
+                    <div className="bg-slate-900 border border-[rgba(255,255,255,0.10)] rounded-xl p-6 max-w-sm w-full shadow-2xl">
                         {/* Header */}
                         <div className="text-center mb-6">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-poker-hero to-poker-hero/60 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                     <polyline points="22 4 12 14.01 9 11.01" />
@@ -138,7 +138,7 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
                             </div>
                             <h2 className="text-xl font-bold text-white mb-1">Hand Complete</h2>
                             <p className="text-slate-400 text-sm">
-                                Final pot: <span className="text-amber-400 font-mono font-bold">{snapshot.pot} BB</span>
+                                Final pot: <span className="text-poker-pot font-mono font-bold">{snapshot.pot} BB</span>
                             </p>
                         </div>
 
@@ -149,18 +149,19 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
                                     setShowEndModal(false);
                                     setShowExportModal(true);
                                 }}
-                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white"
+                                className="w-full bg-poker-bet hover:bg-poker-bet-hover text-white"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                    <path d="m22 8-6 4 6 4V8Z" />
-                                    <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
+                                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                                    <polyline points="16 6 12 2 8 6" />
+                                    <line x1="12" x2="12" y1="2" y2="15" />
                                 </svg>
-                                Export Video
+                                Share Hand
                             </Button>
 
                             <Button
                                 onClick={handleReplayAgain}
-                                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white"
+                                className="w-full bg-poker-hero hover:bg-poker-hero/85 text-white"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -193,9 +194,9 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
                 </div>
             )}
 
-            {/* Export Modal */}
+            {/* Text Export Modal */}
             {showExportModal && (
-                <ExportModal
+                <TextExportModal
                     hand={hand}
                     onClose={() => setShowExportModal(false)}
                 />

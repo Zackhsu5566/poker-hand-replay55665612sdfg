@@ -1,6 +1,8 @@
 import type { Player, Card as CardType, Action, Street } from "@/types";
 import { PlayerSeat } from "./PlayerSeat";
 import { CommunityCards } from "./CommunityCards";
+import { PokerChip, ChipStack } from "./PokerChip";
+import { useMobileLayout } from "@/hooks/useMobileLayout";
 
 interface TableProps {
     players: Player[];
@@ -12,30 +14,90 @@ interface TableProps {
     currentStreet?: Street;
 }
 
+// Layout configuration constants
+const DESKTOP_CONFIG = {
+    // Ellipse radii for player seats (% from center)
+    seatRadiusX: 48,
+    seatRadiusY: 42,
+    // Inner ellipse for chips (proportional to seat radius)
+    chipRadiusX: 32,
+    chipRadiusY: 28,
+};
+
+const MOBILE_CONFIG = {
+    // Portrait ellipse - balanced radii for uniform rim spacing
+    seatRadiusX: 42,
+    seatRadiusY: 42,
+    // Inner ellipse for chips - 65% of seat radius for consistent ring
+    chipRadiusX: 27,
+    chipRadiusY: 27,
+};
+
+/**
+ * Pre-defined symmetric seat angles for each player count (mobile layout)
+ * Angles in CSS degrees: 0=right, 90=bottom, 180=left, 270=top
+ * Hero is always at 90° (bottom center)
+ * All layouts are PERFECTLY left-right symmetric around the 90°-270° vertical axis
+ *
+ * Symmetry rule: For every angle θ, its mirror is (180° - θ) mod 360°
+ * Angles on the axis (90°, 270°) are self-symmetric
+ *
+ * Order: Clockwise from Hero for proper poker seating
+ */
+const MOBILE_SEAT_ANGLES: Record<number, number[]> = {
+    2: [90, 270],                                    // Hero bottom, villain top
+    3: [90, 210, 330],                               // Clockwise: Hero → upper-left → upper-right
+    4: [90, 180, 270, 0],                            // Clockwise: Hero → left → top → right
+    5: [90, 150, 210, 330, 30],                      // Clockwise: Hero → left side → right side
+    6: [90, 150, 210, 270, 330, 30],                 // Clockwise: Hero → left → top → right
+    7: [90, 140, 200, 250, 290, 340, 40],            // Clockwise around table
+    8: [90, 135, 180, 225, 270, 315, 0, 45],         // Clockwise: 8 positions evenly spaced
+    9: [90, 120, 150, 210, 240, 300, 330, 30, 60],   // Clockwise: 9-max full ring
+};
+
 export function Table({ players, communityCards, activePlayerIndex, dealerPosition, pot = 0, actions = [], currentStreet = 'preflop' }: TableProps) {
-    // Calculate seat positions dynamically around an ellipse
-    // Player 0 (hero) is always at the bottom center, others distribute clockwise
-    const getPositionStyle = (index: number, total: number) => {
-        if (total === 0) {
-            return { left: '50%', top: '50%', display: 'none' as const };
+    const isMobile = useMobileLayout();
+    const config = isMobile ? MOBILE_CONFIG : DESKTOP_CONFIG;
+
+    /**
+     * Get seat angles for N players
+     * Mobile: uses pre-defined symmetric angles
+     * Desktop: even distribution around ellipse
+     */
+    const getSeatAngles = (total: number): number[] => {
+        if (total === 0) return [];
+
+        // For desktop, use simple even distribution
+        if (!isMobile) {
+            // Even distribution starting from bottom (90°)
+            return Array.from({ length: total }, (_, i) => {
+                return (90 + (i * 360) / total) % 360;
+            });
         }
 
-        // Ellipse radii (percentages from center)
-        // Horizontal radius is larger due to the oval table shape
-        const radiusX = 42; // horizontal spread
-        const radiusY = 38; // vertical spread
+        // MOBILE: Use pre-defined symmetric angles
+        if (MOBILE_SEAT_ANGLES[total]) {
+            return MOBILE_SEAT_ANGLES[total];
+        }
 
-        // Start from bottom center (270 degrees in standard math coords, but we use 90 for bottom)
-        // Distribute players clockwise
-        const startAngle = Math.PI / 2; // 90 degrees = bottom
-        const angleStep = (2 * Math.PI) / total;
+        // Fallback for unexpected player counts: even distribution
+        return Array.from({ length: total }, (_, i) => {
+            return (90 + (i * 360) / total) % 360;
+        });
+    };
 
-        // Player 0 at bottom, then clockwise (positive direction since Y increases downward)
-        const angle = startAngle + index * angleStep;
+    const seatAngles = getSeatAngles(players.length);
 
-        // Calculate position on ellipse (center is at 50%, 50%)
-        const left = 50 + radiusX * Math.cos(angle);
-        const top = 50 + radiusY * Math.sin(angle);
+    const getPositionStyle = (index: number): React.CSSProperties => {
+        if (players.length === 0) {
+            return { left: '50%', top: '50%', display: 'none' };
+        }
+
+        const angleDeg = seatAngles[index];
+        const rad = (angleDeg * Math.PI) / 180;
+
+        const left = 50 + config.seatRadiusX * Math.cos(rad);
+        const top = 50 + config.seatRadiusY * Math.sin(rad);
 
         return {
             left: `${left}%`,
@@ -44,23 +106,37 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
         };
     };
 
-    // Get last action for each player - prioritize fold (once folded, always show fold)
+    const getChipPositionStyle = (index: number): React.CSSProperties => {
+        const angleDeg = seatAngles[index];
+        const rad = (angleDeg * Math.PI) / 180;
+
+        // Chips positioned on inner ellipse at same angle as seat
+        const left = 50 + config.chipRadiusX * Math.cos(rad);
+        const top = 50 + config.chipRadiusY * Math.sin(rad);
+
+        return {
+            position: 'absolute',
+            left: `${left}%`,
+            top: `${top}%`,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: '3px',
+            transform: 'translate(-50%, -50%)'
+        };
+    };
+
+    // Get last action for each player
     const getPlayerLastAction = (position: string) => {
-        // Check if player folded at any point
         const foldAction = actions.find(a => a.playerPosition === position && a.type === 'fold');
         if (foldAction) return foldAction;
-
-        // Otherwise return last action on current street
         const playerActions = actions.filter(a => a.playerPosition === position && a.street === currentStreet);
         return playerActions.length > 0 ? playerActions[playerActions.length - 1] : undefined;
     };
 
-    // Calculate current bet for each player on this street (0 if folded)
     const getPlayerCurrentBet = (position: string) => {
-        // If player folded, don't show bet
         const hasFolded = actions.some(a => a.playerPosition === position && a.type === 'fold');
         if (hasFolded) return 0;
-
         return actions
             .filter(a => a.playerPosition === position && a.street === currentStreet)
             .reduce((sum, a) => {
@@ -71,25 +147,101 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
             }, 0);
     };
 
-    return (
-        <div className="relative w-full max-w-4xl h-full max-h-[500px] aspect-[1.8/1] mx-auto bg-slate-900 rounded-[60px] sm:rounded-[100px] border-[8px] sm:border-[12px] border-slate-800 shadow-2xl flex items-center justify-center p-6 sm:p-12 ring-1 ring-slate-700/50">
-            {/* Felt Texture */}
-            <div className="absolute inset-0 rounded-[52px] sm:rounded-[88px] bg-gradient-to-b from-slate-900 to-slate-800/80 pointer-events-none" />
+    // Mobile layout: portrait composition
+    if (isMobile) {
+        return (
+            <div className="relative w-full aspect-[3/4] max-w-[400px] mx-auto flex items-center justify-center">
+                {/* Table Structure - Portrait Ellipse */}
+                <div className="absolute inset-[4%] rounded-[50%] bg-gradient-to-b from-[#1B2333] to-[#0F131B] shadow-[0_18px_60px_rgba(0,0,0,0.65)] p-3 ring-1 ring-white/5">
+                    {/* Felt */}
+                    <div className="relative w-full h-full rounded-[50%] bg-[#0F131B] overflow-hidden shadow-[inset_0_0_0_1px_rgba(43,212,182,0.12)]">
+                        {/* Felt Gradient */}
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1A2232] to-[#0F131B] opacity-80" />
 
-            {/* Community Cards */}
-            <div className="relative z-10 mb-4">
-                <CommunityCards cards={communityCards} />
-                <div className="text-center mt-2 text-poker-pot text-sm tracking-widest font-mono font-bold">
-                    POT: {pot} BB
+                        {/* Center Cluster: Community Cards + Pot */}
+                        <div className="absolute inset-0 flex items-center justify-center z-10">
+                            <div className="flex flex-col items-center gap-2 -mt-4">
+                                <CommunityCards cards={communityCards} compact={true} />
+                                <div className="flex items-center justify-center gap-1.5">
+                                    <ChipStack count={pot >= 20 ? 3 : pot >= 5 ? 2 : 1} chipSize={16} />
+                                    <span className="text-[#C9A86A] text-xs tracking-widest font-mono font-bold" style={{ textShadow: '0 1px 8px rgba(201,168,106,0.3)' }}>
+                                        {pot} BB
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Players - Positioned around portrait ellipse */}
+                {players.map((player, idx) => (
+                    <div
+                        key={player.position}
+                        className="absolute transition-all duration-300 z-20"
+                        style={getPositionStyle(idx)}
+                    >
+                        <PlayerSeat
+                            player={player}
+                            isDealer={player.position === dealerPosition}
+                            isActivePosition={idx === activePlayerIndex}
+                            lastAction={getPlayerLastAction(player.position)}
+                            currentBet={getPlayerCurrentBet(player.position)}
+                            compact={true}
+                        />
+                    </div>
+                ))}
+
+                {/* Bet Chips - Inner ellipse ring */}
+                {players.map((player, idx) => {
+                    const currentBet = getPlayerCurrentBet(player.position);
+                    if (currentBet <= 0) return null;
+
+                    return (
+                        <div
+                            key={`chip-${player.position}`}
+                            className="absolute flex items-center gap-1 transition-all duration-300 z-30"
+                            style={getChipPositionStyle(idx)}
+                        >
+                            <PokerChip size={18} shadow={false} />
+                            <span className="text-[10px] font-mono font-bold text-[#C9A86A] drop-shadow-md">{currentBet}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    // Desktop layout: wide composition
+    return (
+        <div className="relative w-full max-w-5xl aspect-[2/1] mx-auto flex items-center justify-center">
+            {/* Table Structure */}
+            <div className="absolute inset-0 rounded-[50%] bg-gradient-to-b from-[#1B2333] to-[#0F131B] shadow-[0_18px_60px_rgba(0,0,0,0.65)] p-4 sm:p-5 ring-1 ring-white/5">
+                {/* Felt */}
+                <div className="relative w-full h-full rounded-[50%] bg-[#0F131B] overflow-hidden shadow-[inset_0_0_0_1px_rgba(43,212,182,0.12)]">
+                    {/* Felt Gradient */}
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1A2232] to-[#0F131B] opacity-80" />
+
+                    {/* Community Cards & Pot Center */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="relative z-10 flex flex-col items-center gap-4 pt-4">
+                            <CommunityCards cards={communityCards} />
+                            <div className="flex items-center justify-center gap-2">
+                                <ChipStack count={pot >= 20 ? 3 : pot >= 5 ? 2 : 1} chipSize={20} />
+                                <span className="text-[#C9A86A] text-sm tracking-widest font-mono font-bold" style={{ textShadow: '0 1px 8px rgba(201,168,106,0.3)' }}>
+                                    {pot} BB
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Players - Positioned around the table */}
+            {/* Players - Positioned absolutely relative to the main container */}
             {players.map((player, idx) => (
                 <div
                     key={player.position}
-                    className="absolute transition-all duration-300"
-                    style={getPositionStyle(idx, players.length) as React.CSSProperties}
+                    className="absolute transition-all duration-300 z-20"
+                    style={getPositionStyle(idx)}
                 >
                     <PlayerSeat
                         player={player}
@@ -101,77 +253,22 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
                 </div>
             ))}
 
-            {/* Bet Chips - Positioned between player seats and pot center */}
+            {/* Bet Chips */}
             {players.map((player, idx) => {
                 const currentBet = getPlayerCurrentBet(player.position);
                 if (currentBet <= 0) return null;
 
-                // Get player position (ellipse parameters)
-                const radiusX = 42;
-                const radiusY = 38;
-                const startAngle = Math.PI / 2;
-                const angleStep = (2 * Math.PI) / players.length;
-                const angle = startAngle + idx * angleStep;
-
-                // Player seat position (percentage)
-                const playerLeft = 50 + radiusX * Math.cos(angle);
-                const playerTop = 50 + radiusY * Math.sin(angle);
-
-                // Pot center is at 50%, 50%
-                // Calculate direction vector from player to pot
-                const dx = 50 - playerLeft;
-                const dy = 50 - playerTop;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                // Normalize direction
-                const ndx = dx / dist;
-                const ndy = dy / dist;
-
-                // Default: offset toward pot
-                let offsetDist = 12; // percentage units toward pot
-                let chipLeft = playerLeft + ndx * offsetDist;
-                let chipTop = playerTop + ndy * offsetDist;
-
-                // Special handling for TOP-CENTER seat only (around 180° / top middle)
-                // This is a seat where playerTop is low (near top) AND playerLeft is close to 50%
-                const isTopCenterSeat = playerTop < 25 && playerLeft > 40 && playerLeft < 60;
-
-                // Special handling for BOTTOM-CENTER seat (Hero position)
-                // This is a seat where playerTop is high (near bottom) AND playerLeft is close to 50%
-                const isBottomCenterSeat = playerTop > 75 && playerLeft > 40 && playerLeft < 60;
-
-                if (isTopCenterSeat) {
-                    // For top-center seat:
-                    // - Keep X aligned with seat center (no lateral offset)
-                    // - Place chip directly below the action badge, above the board/pot area
-                    chipLeft = playerLeft; // Same X as seat center
-                    // Position below the seat/action area but above the pot
-                    // Reduced offset to keep chip further from board
-                    chipTop = Math.min(playerTop + 18, 36); // Clamp to stay well above board
-                } else if (isBottomCenterSeat) {
-                    // For bottom-center seat (Hero):
-                    // - Keep X aligned with seat center
-                    // - Push chip further toward pot (upward)
-                    chipLeft = playerLeft; // Same X as seat center
-                    chipTop = Math.max(playerTop - 18, 62); // Clamp to stay below board (pot is ~50%)
-                }
-
                 return (
                     <div
                         key={`chip-${player.position}`}
-                        className="absolute flex items-center gap-1 transition-all duration-300 z-20"
-                        style={{
-                            left: `${chipLeft}%`,
-                            top: `${chipTop}%`,
-                            transform: 'translate(-50%, -50%)'
-                        }}
+                        className="absolute flex items-center gap-1 transition-all duration-300 z-30"
+                        style={getChipPositionStyle(idx)}
                     >
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 border-2 border-amber-300 shadow-lg" />
-                        <span className="text-xs font-mono font-bold text-amber-400 drop-shadow-md">{currentBet}</span>
+                        <PokerChip size={22} shadow={false} />
+                        <span className="text-xs font-mono font-bold text-[#C9A86A] drop-shadow-md">{currentBet}</span>
                     </div>
                 );
             })}
         </div>
     );
 }
-

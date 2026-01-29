@@ -38,19 +38,31 @@ export default {
                     DEFAULT: 'hsl(var(--card))',
                     foreground: 'hsl(var(--card-foreground))'
                 },
-                // Custom Poker Palette
+                // Premium Black Palette
                 slate: {
-                    950: '#020617', // Background
-                    900: '#0f172a', // Surface
-                    400: '#94a3b8', // Secondary Text
-                    50: '#f8fafc',  // Primary Text
+                    950: '#050608', // App background (near-black)
+                    900: '#0B0E14', // Primary surface
+                    850: '#0F131B', // Felt base
+                    800: '#1A2232', // Borders / secondary surface
+                    700: '#243047', // Lighter borders
+                    600: '#2E3B50', // Hover states
+                    500: '#6B7683', // Tertiary / muted text
+                    400: '#9AA6B2', // Secondary text
+                    300: '#C0C8D2', // Light secondary
+                    200: '#E8EEF7', // Near-white
+                    100: '#F0F4FA', // Card face
+                    50: '#E8EEF7',  // Primary text
                 },
                 poker: {
-                    bet: '#10b981', // Electric Green
-                    fold: '#ef4444', // Muted Red
-                    hero: '#06b6d4', // Cyan
-                    allin: '#f59e0b', // Amber
-                    pot: '#fbbf24', // Gold
+                    bet: '#18A572',       // Action / success
+                    'bet-hover': '#1DBB83',
+                    fold: '#E5484D',      // Danger
+                    'fold-hover': '#F05B61',
+                    hero: '#2BD4B6',      // Teal accent
+                    allin: '#C9A86A',     // Premium gold
+                    pot: '#C9A86A',       // Premium gold
+                    check: '#1A2232',     // Neutral
+                    'check-hover': '#243047',
                 }
             },
             borderRadius: {
@@ -64,6 +76,9 @@ export default {
             },
             padding: {
                 'safe': 'env(safe-area-inset-bottom, 8px)',
+            },
+            screens: {
+                'xs': '390px',
             }
         }
     },

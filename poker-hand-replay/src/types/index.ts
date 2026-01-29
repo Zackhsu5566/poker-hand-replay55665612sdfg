@@ -50,24 +50,6 @@ export interface ReplaySnapshot {
     lastAction: Action | null;
 }
 
-// Video Export types
-export type ExportResolution = '1080x1080' | '1920x1080';
-
-export interface ExportOptions {
-    resolution: ExportResolution;
-    playbackSpeed: PlaybackSpeed;
-    includeTitleCard: boolean;
-    includeHeroReveal: boolean;
-}
-
-export interface ExportProgress {
-    status: 'idle' | 'rendering' | 'encoding' | 'complete' | 'error';
-    progress: number; // 0-100
-    currentFrame: number;
-    totalFrames: number;
-    message: string;
-}
-
 // Equity Calculator types
 export interface EquityResult {
     heroEquity: number;      // 0-100 percentage
