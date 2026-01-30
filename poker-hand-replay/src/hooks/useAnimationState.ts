@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
-import type { ReplaySnapshot, Card } from "@/types";
+import type { ReplaySnapshot } from "@/types";
 
 export interface AnimationState {
     animatingHoleCards: Record<string, number[]>;  // position -> [0,1] indices
