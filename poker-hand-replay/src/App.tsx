@@ -1,17 +1,73 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { SetupForm } from '@/components/Input/SetupForm';
 import { Table } from '@/components/Table/Table';
 import { ActionInput } from '@/components/Input/ActionInput';
 import { CardPicker } from '@/components/Card/CardPicker';
 import { ReplayView } from '@/components/Replay';
 import { useHandHistory } from '@/hooks/useHandHistory';
+import { ChevronDown } from 'lucide-react';
 import type { ActionType, Card, Street } from '@/types';
+
+const MOBILE_BREAKPOINT = 768;
+const HEADER_COLLAPSED_KEY = 'replow-header-collapsed';
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT
+  );
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+}
 
 function App() {
   const { hand, currentStreet, activePlayerIndex, isHandComplete, isAllInShowdown, isManualEnd, initHand, addAction, advanceStreet, setHeroCards, setCommunityCards, getStreetState, setIsHandComplete, endHandManually, finishManualEnd, setCurrentStreet } = useHandHistory();
   const [view, setView] = useState<'setup' | 'play' | 'replay'>('setup');
   const [showCardPicker, setShowCardPicker] = useState(false);
   const [heroCardsSelected, setHeroCardsSelected] = useState<Card[]>([]);
+
+  // Collapsible header state
+  const isMobile = useIsMobile();
+  const [headerCollapsed, setHeaderCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const stored = localStorage.getItem(HEADER_COLLAPSED_KEY);
+    return stored !== null ? stored === 'true' : true; // Default collapsed on mobile
+  });
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  // Persist header state to localStorage
+  useEffect(() => {
+    if (isMobile) {
+      localStorage.setItem(HEADER_COLLAPSED_KEY, String(headerCollapsed));
+    }
+  }, [headerCollapsed, isMobile]);
+
+  // Close header when tapping outside (only on mobile when expanded)
+  useEffect(() => {
+    if (!isMobile || headerCollapsed) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
+        setHeaderCollapsed(true);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMobile, headerCollapsed]);
+
+  const toggleHeader = useCallback(() => {
+    setHeaderCollapsed(prev => !prev);
+  }, []);
 
   // Auto-switch to replay view when hand completes
   useEffect(() => {
@@ -178,24 +234,69 @@ function App() {
     );
   }
 
+  // Determine if header should be shown as collapsible (mobile + play view)
+  const showCollapsibleHeader = isMobile && view === 'play';
+
   return (
     <div className="h-screen bg-slate-950 text-slate-50 flex flex-col font-sans selection:bg-poker-hero/30 overflow-hidden">
-      <header className="flex-shrink-0 p-3 border-b border-[rgba(255,255,255,0.10)] flex justify-between items-center bg-slate-950 backdrop-blur z-50">
-        <h1 className="text-xl font-bold tracking-tight text-slate-50">Replow</h1>
-        {view === 'play' && (
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-slate-500 uppercase">
-              {currentStreet}
-            </span>
-            <button
-              onClick={() => setView('setup')}
-              className="text-xs text-slate-400 hover:text-poker-hero transition-colors"
-            >
-              NEW HAND
-            </button>
+      {/* Collapsible Header for Mobile */}
+      {showCollapsibleHeader ? (
+        <div ref={headerRef} className="flex-shrink-0 z-50">
+          {/* Handle - always visible */}
+          <button
+            onClick={toggleHeader}
+            className="w-full bg-slate-950 border-b border-[rgba(255,255,255,0.10)] flex items-center justify-center pt-safe transition-colors active:bg-slate-900"
+            style={{ height: headerCollapsed ? '28px' : '0px', paddingTop: 'env(safe-area-inset-top)' }}
+            aria-label={headerCollapsed ? 'Expand header' : 'Collapse header'}
+            aria-expanded={!headerCollapsed}
+          >
+            <ChevronDown
+              size={16}
+              className={`text-slate-500 transition-transform duration-200 ${headerCollapsed ? '' : 'rotate-180'}`}
+            />
+          </button>
+
+          {/* Expandable content */}
+          <div
+            className={`overflow-hidden transition-all duration-200 ease-out bg-slate-950 border-b border-[rgba(255,255,255,0.10)] ${
+              headerCollapsed ? 'max-h-0 opacity-0' : 'max-h-16 opacity-100'
+            }`}
+          >
+            <div className="p-3 flex justify-between items-center">
+              <h1 className="text-xl font-bold tracking-tight text-slate-50">Replow</h1>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-slate-500 uppercase">
+                  {currentStreet}
+                </span>
+                <button
+                  onClick={() => setView('setup')}
+                  className="text-xs text-slate-400 hover:text-poker-hero transition-colors"
+                >
+                  NEW HAND
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-      </header>
+        </div>
+      ) : (
+        /* Standard Header for Desktop & Setup/Replay views */
+        <header className="flex-shrink-0 p-3 border-b border-[rgba(255,255,255,0.10)] flex justify-between items-center bg-slate-950 backdrop-blur z-50 pt-safe">
+          <h1 className="text-xl font-bold tracking-tight text-slate-50">Replow</h1>
+          {view === 'play' && (
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-slate-500 uppercase">
+                {currentStreet}
+              </span>
+              <button
+                onClick={() => setView('setup')}
+                className="text-xs text-slate-400 hover:text-poker-hero transition-colors"
+              >
+                NEW HAND
+              </button>
+            </div>
+          )}
+        </header>
+      )}
 
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {view === 'setup' ? (
