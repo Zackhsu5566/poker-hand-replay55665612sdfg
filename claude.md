@@ -374,3 +374,4 @@ Depending on the situation:
 * No card can appear more than once anywhere (hero hole cards cannot be re-selected on the board).
 * Street order is fixed: **preflop → flop → turn → river**.
 * Actions should be validated by street: e.g., community cards cannot be placed before the flop, and "check" is only allowed if no bet exists in the current betting state.
+* The order of action must be clockwise

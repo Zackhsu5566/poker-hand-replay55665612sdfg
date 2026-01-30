@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Table } from "@/components/Table/Table";
 import { ReplayControls } from "./ReplayControls";
 import { useReplay } from "@/hooks/useReplay";
+import { useAnimationState } from "@/hooks/useAnimationState";
 import { useEquity } from "@/hooks/useEquity";
 import { Button } from "@/components/ui/button";
 import { TextExportModal } from "@/components/Export";
@@ -28,6 +29,14 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
         setSpeed,
         reset
     } = useReplay({ hand });
+
+    // Animation state tracking
+    const {
+        animatingHoleCards,
+        animatingCommunityCards,
+        token: animationToken,
+        resetAnimationState
+    } = useAnimationState(snapshot, currentActionIndex);
 
     const { equity, potOdds } = useEquity(snapshot);
 
@@ -58,6 +67,7 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
     const handleReplayAgain = () => {
         setShowEndModal(false);
         hasShownModalForThisRunRef.current = false;
+        resetAnimationState();  // Reset animation state for fresh animations
         reset();
         // Start playing after a brief moment
         setTimeout(() => play(), 100);
@@ -98,6 +108,10 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
                     pot={snapshot.pot}
                     actions={snapshot.visibleActions}
                     currentStreet={snapshot.currentStreet}
+                    animatingHoleCards={animatingHoleCards}
+                    animatingCommunityCards={animatingCommunityCards}
+                    animationToken={animationToken}
+                    playbackSpeed={playbackSpeed}
                 />
 
                 {/* Equity Display - positioned top right */}

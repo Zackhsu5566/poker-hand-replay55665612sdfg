@@ -12,6 +12,11 @@ interface TableProps {
     pot?: number;
     actions?: Action[];
     currentStreet?: Street;
+    // Animation props
+    animatingHoleCards?: Record<string, number[]>;  // position -> card indices
+    animatingCommunityCards?: number[];             // board card indices
+    animationToken?: number;
+    playbackSpeed?: number;
 }
 
 // Layout configuration constants
@@ -34,60 +39,106 @@ const MOBILE_CONFIG = {
 };
 
 /**
- * Pre-defined symmetric seat angles for each player count (mobile layout)
- * Angles in CSS degrees: 0=right, 90=bottom, 180=left, 270=top
- * Hero is always at 90° (bottom center)
- * All layouts are PERFECTLY left-right symmetric around the 90°-270° vertical axis
+ * Angle-based seat placement using math convention:
+ * - 0° = right (3 o'clock)
+ * - 90° = top (12 o'clock)
+ * - 180° = left (9 o'clock)
+ * - 270° = bottom (6 o'clock, Hero position)
  *
- * Symmetry rule: For every angle θ, its mirror is (180° - θ) mod 360°
- * Angles on the axis (90°, 270°) are self-symmetric
+ * Position formula: x = cx + a*cos(θ), y = cy - b*sin(θ)
  *
- * Order: Clockwise from Hero for proper poker seating
+ * All layouts maintain mirror symmetry around the vertical (90°-270°) axis.
+ * Symmetry rule: angle θ mirrors to (180° - θ) mod 360°
+ *
+ * Order: Clockwise from Hero (270°) for proper poker seating
  */
-const MOBILE_SEAT_ANGLES: Record<number, number[]> = {
-    2: [90, 270],                                    // Hero bottom, villain top
-    3: [90, 210, 330],                               // Clockwise: Hero → upper-left → upper-right
-    4: [90, 180, 270, 0],                            // Clockwise: Hero → left → top → right
-    5: [90, 150, 210, 330, 30],                      // Clockwise: Hero → left side → right side
-    6: [90, 150, 210, 270, 330, 30],                 // Clockwise: Hero → left → top → right
-    7: [90, 140, 200, 250, 290, 340, 40],            // Clockwise around table
-    8: [90, 135, 180, 225, 270, 315, 0, 45],         // Clockwise: 8 positions evenly spaced
-    9: [90, 120, 150, 210, 240, 300, 330, 30, 60],   // Clockwise: 9-max full ring
+const SEAT_ANGLES: Record<number, number[]> = {
+    // 2-max: Hero bottom, villain top
+    2: [270, 90],
+
+    // 3-max: Hero at bottom, opponents at upper corners (symmetric)
+    // Clockwise from Hero: 270° → 150° → 30°
+    3: [270, 150, 30],
+
+    // 4-max: Cardinal directions
+    // Clockwise from Hero: 270° → 180° → 90° → 0°
+    4: [270, 180, 90, 0],
+
+    // 5-max: Hero + 4 symmetric positions
+    // Clockwise from Hero: 270° → 225° → 135° → 45° → 315°
+    5: [270, 225, 135, 45, 315],
+
+    // 6-max: Exact angles [30°, 90°, 150°, 210°, 270°(Hero), 330°]
+    // Mirror pairs: (30°, 150°), (210°, 330°), axis: (90°, 270°)
+    // Clockwise from Hero: 270° → 210° → 150° → 90° → 30° → 330°
+    6: [270, 210, 150, 90, 30, 330],
+
+    // 7-max: Hero + 6 symmetric positions
+    // Clockwise from Hero: 270° → 225° → 180° → 135° → 45° → 0° → 315°
+    7: [270, 225, 180, 135, 45, 0, 315],
+
+    // 8-max: Evenly spaced 45° apart
+    // Clockwise from Hero: 270° → 225° → 180° → 135° → 90° → 45° → 0° → 315°
+    8: [270, 225, 180, 135, 90, 45, 0, 315],
+
+    // 9-max (Desktop): Horizontal oval with uniform spacing
+    // Clockwise from Hero: 270° → 225° → 165° → 135° → 105° → 75° → 45° → 15° → 315°
+    // Mirror pairs: (75°, 105°), (45°, 135°), (15°, 165°), (315°, 225°), axis: 270°
+    9: [270, 225, 165, 135, 105, 75, 45, 15, 315],
 };
 
-export function Table({ players, communityCards, activePlayerIndex, dealerPosition, pot = 0, actions = [], currentStreet = 'preflop' }: TableProps) {
+// Mobile 9-max: Portrait oval optimized layout (different angle distribution)
+// Clockwise from Hero: 270° → 240° → 205° → 155° → 120° → 60° → 25° → 335° → 300°
+// Mirror pairs: (60°, 120°), (25°, 155°), (335°, 205°), (300°, 240°), axis: 270°
+const MOBILE_9MAX_ANGLES = [270, 240, 205, 155, 120, 60, 25, 335, 300];
+
+export function Table({
+    players,
+    communityCards,
+    activePlayerIndex,
+    dealerPosition,
+    pot = 0,
+    actions = [],
+    currentStreet = 'preflop',
+    animatingHoleCards = {},
+    animatingCommunityCards = [],
+    animationToken = 0,
+    playbackSpeed = 1
+}: TableProps) {
     const isMobile = useMobileLayout();
     const config = isMobile ? MOBILE_CONFIG : DESKTOP_CONFIG;
 
     /**
-     * Get seat angles for N players
-     * Mobile: uses pre-defined symmetric angles
-     * Desktop: even distribution around ellipse
+     * Get seat angles for N players using math convention
+     * Uses pre-defined symmetric angles for all layouts
+     * Fallback: even distribution starting from Hero at 270° (bottom)
      */
     const getSeatAngles = (total: number): number[] => {
         if (total === 0) return [];
 
-        // For desktop, use simple even distribution
-        if (!isMobile) {
-            // Even distribution starting from bottom (90°)
-            return Array.from({ length: total }, (_, i) => {
-                return (90 + (i * 360) / total) % 360;
-            });
+        // 9-max: Use mobile-optimized angles for portrait layout
+        if (total === 9 && isMobile) {
+            return MOBILE_9MAX_ANGLES;
         }
 
-        // MOBILE: Use pre-defined symmetric angles
-        if (MOBILE_SEAT_ANGLES[total]) {
-            return MOBILE_SEAT_ANGLES[total];
+        // Use pre-defined symmetric angles
+        if (SEAT_ANGLES[total]) {
+            return SEAT_ANGLES[total];
         }
 
-        // Fallback for unexpected player counts: even distribution
+        // Fallback for unexpected player counts: even distribution from 270° (Hero at bottom)
         return Array.from({ length: total }, (_, i) => {
-            return (90 + (i * 360) / total) % 360;
+            return (270 + (i * 360) / total) % 360;
         });
     };
 
     const seatAngles = getSeatAngles(players.length);
 
+    /**
+     * Calculate seat position using math convention:
+     * x = cx + a*cos(θ), y = cy - b*sin(θ)
+     * (minus for y because screen Y-axis is inverted)
+     */
     const getPositionStyle = (index: number): React.CSSProperties => {
         if (players.length === 0) {
             return { left: '50%', top: '50%', display: 'none' };
@@ -96,8 +147,17 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
         const angleDeg = seatAngles[index];
         const rad = (angleDeg * Math.PI) / 180;
 
-        const left = 50 + config.seatRadiusX * Math.cos(rad);
-        const top = 50 + config.seatRadiusY * Math.sin(rad);
+        // Apply extra outward scaling for mobile 9-max to reduce cramping
+        let radiusX = config.seatRadiusX;
+        let radiusY = config.seatRadiusY;
+        if (isMobile && players.length === 9) {
+            radiusX *= 1.06;
+            radiusY *= 1.08;
+        }
+
+        // Math convention: x = cx + a*cos(θ), y = cy - b*sin(θ)
+        const left = 50 + radiusX * Math.cos(rad);
+        const top = 50 - radiusY * Math.sin(rad);
 
         return {
             left: `${left}%`,
@@ -106,13 +166,25 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
         };
     };
 
+    /**
+     * Calculate chip position on inner ellipse using math convention
+     */
     const getChipPositionStyle = (index: number): React.CSSProperties => {
         const angleDeg = seatAngles[index];
         const rad = (angleDeg * Math.PI) / 180;
 
+        // Apply matching scaling for mobile 9-max chip positions
+        let chipRadiusX = config.chipRadiusX;
+        let chipRadiusY = config.chipRadiusY;
+        if (isMobile && players.length === 9) {
+            chipRadiusX *= 1.06;
+            chipRadiusY *= 1.08;
+        }
+
         // Chips positioned on inner ellipse at same angle as seat
-        const left = 50 + config.chipRadiusX * Math.cos(rad);
-        const top = 50 + config.chipRadiusY * Math.sin(rad);
+        // Math convention: x = cx + a*cos(θ), y = cy - b*sin(θ)
+        const left = 50 + chipRadiusX * Math.cos(rad);
+        const top = 50 - chipRadiusY * Math.sin(rad);
 
         return {
             position: 'absolute',
@@ -161,7 +233,13 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
                         {/* Center Cluster: Community Cards + Pot */}
                         <div className="absolute inset-0 flex items-center justify-center z-10">
                             <div className="flex flex-col items-center gap-2 -mt-4">
-                                <CommunityCards cards={communityCards} compact={true} />
+                                <CommunityCards
+                                    cards={communityCards}
+                                    compact={true}
+                                    animatingIndices={animatingCommunityCards}
+                                    animationToken={animationToken}
+                                    playbackSpeed={playbackSpeed}
+                                />
                                 <div className="flex items-center justify-center gap-1.5">
                                     <ChipStack count={pot >= 20 ? 3 : pot >= 5 ? 2 : 1} chipSize={16} />
                                     <span className="text-[#C9A86A] text-xs tracking-widest font-mono font-bold" style={{ textShadow: '0 1px 8px rgba(201,168,106,0.3)' }}>
@@ -187,6 +265,9 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
                             lastAction={getPlayerLastAction(player.position)}
                             currentBet={getPlayerCurrentBet(player.position)}
                             compact={true}
+                            animatingCardIndices={animatingHoleCards[player.position] || []}
+                            animationToken={animationToken}
+                            playbackSpeed={playbackSpeed}
                         />
                     </div>
                 ))}
@@ -224,7 +305,12 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
                     {/* Community Cards & Pot Center */}
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="relative z-10 flex flex-col items-center gap-4 pt-4">
-                            <CommunityCards cards={communityCards} />
+                            <CommunityCards
+                                cards={communityCards}
+                                animatingIndices={animatingCommunityCards}
+                                animationToken={animationToken}
+                                playbackSpeed={playbackSpeed}
+                            />
                             <div className="flex items-center justify-center gap-2">
                                 <ChipStack count={pot >= 20 ? 3 : pot >= 5 ? 2 : 1} chipSize={20} />
                                 <span className="text-[#C9A86A] text-sm tracking-widest font-mono font-bold" style={{ textShadow: '0 1px 8px rgba(201,168,106,0.3)' }}>
@@ -249,6 +335,9 @@ export function Table({ players, communityCards, activePlayerIndex, dealerPositi
                         isActivePosition={idx === activePlayerIndex}
                         lastAction={getPlayerLastAction(player.position)}
                         currentBet={getPlayerCurrentBet(player.position)}
+                        animatingCardIndices={animatingHoleCards[player.position] || []}
+                        animationToken={animationToken}
+                        playbackSpeed={playbackSpeed}
                     />
                 </div>
             ))}

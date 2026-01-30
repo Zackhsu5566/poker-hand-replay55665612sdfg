@@ -11,9 +11,23 @@ interface PlayerSeatProps {
     currentBet?: number;
     className?: string;
     compact?: boolean;
+    // Animation props
+    animatingCardIndices?: number[];  // which card indices [0, 1] should animate
+    animationToken?: number;          // for CSS re-trigger
+    playbackSpeed?: number;           // for scaling delays
 }
 
-export function PlayerSeat({ player, isActivePosition, isDealer, lastAction, className, compact = false }: PlayerSeatProps) {
+export function PlayerSeat({
+    player,
+    isActivePosition,
+    isDealer,
+    lastAction,
+    className,
+    compact = false,
+    animatingCardIndices = [],
+    animationToken = 0,
+    playbackSpeed = 1
+}: PlayerSeatProps) {
     const getActionLabel = () => {
         if (!lastAction) return null;
         switch (lastAction.type) {
@@ -38,8 +52,22 @@ export function PlayerSeat({ player, isActivePosition, isDealer, lastAction, cla
                 "relative flex z-10",
                 compact ? "-space-x-5 mb-[-8px]" : "-space-x-4 mb-[-10px]"
             )}>
-                <Card card={player.cards[0]} hidden={!player.cards[0] && !player.isHero} size="sm" />
-                <Card card={player.cards[1]} hidden={!player.cards[1] && !player.isHero} size="sm" />
+                <Card
+                    card={player.cards[0]}
+                    hidden={!player.cards[0] && !player.isHero}
+                    size="sm"
+                    animationType={animatingCardIndices.includes(0) ? 'deal' : 'none'}
+                    animationDelay={0}
+                    animationToken={animationToken}
+                />
+                <Card
+                    card={player.cards[1]}
+                    hidden={!player.cards[1] && !player.isHero}
+                    size="sm"
+                    animationType={animatingCardIndices.includes(1) ? 'deal' : 'none'}
+                    animationDelay={animatingCardIndices.includes(1) ? (100 / playbackSpeed) : 0}
+                    animationToken={animationToken}
+                />
             </div>
 
             {/* Avatar/Info Box */}
@@ -47,8 +75,8 @@ export function PlayerSeat({ player, isActivePosition, isDealer, lastAction, cla
                 className={cn(
                     "relative rounded-lg border flex flex-col items-center justify-center transition-all bg-[rgba(16,22,36,0.75)] backdrop-blur-[14px]",
                     compact
-                        ? "min-w-[60px] px-1.5 py-0.5"
-                        : "min-w-[72px] xs:min-w-[85px] sm:min-w-[100px] px-2 xs:px-3 py-1 xs:py-1.5",
+                        ? "min-w-[60px] px-1.5 pt-2.5 pb-0.5"
+                        : "min-w-[72px] xs:min-w-[85px] sm:min-w-[100px] px-2 xs:px-3 pt-3 pb-1 xs:pt-3.5 xs:pb-1.5",
                     isActivePosition ? "border-[rgba(43,212,182,0.35)] shadow-[0_0_15px_-3px_rgba(43,212,182,0.3)]" : "border-[rgba(255,255,255,0.10)]",
                     !player.isActive && "opacity-50 grayscale"
                 )}
@@ -70,11 +98,11 @@ export function PlayerSeat({ player, isActivePosition, isDealer, lastAction, cla
                     {player.name || player.position}
                 </div>
                 <div className={cn(
-                    "flex items-center justify-center gap-1 font-mono text-poker-pot font-bold",
+                    "inline-flex items-center justify-center gap-1 font-mono text-poker-pot font-bold whitespace-nowrap",
                     compact ? "text-[10px]" : "text-xs"
                 )}>
                     <PokerChip size={compact ? 12 : 14} shadow={false} />
-                    {player.stack} BB
+                    <span className="whitespace-nowrap">{player.stack}&nbsp;BB</span>
                 </div>
             </div>
 

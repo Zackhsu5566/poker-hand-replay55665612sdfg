@@ -61,15 +61,21 @@ export function SetupForm({ onStart }: SetupFormProps) {
 
     const renderStepContent = () => {
         switch (step) {
-            case 'count':
+            case 'count': {
+                const tableOptions = [
+                    { count: 2, label: 'HU', description: 'Heads Up' },
+                    { count: 6, label: '6MAX', description: '6 Players' },
+                    { count: 9, label: '9MAX', description: '9 Players' }
+                ] as const;
+
                 return (
                     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                         <h3 className="text-lg font-medium text-slate-200 flex items-center gap-2">
                             <Users size={20} className="text-poker-bet" />
-                            How many players?
+                            Table Format
                         </h3>
-                        <div className="grid grid-cols-3 gap-2 xs:gap-3">
-                            {[2, 3, 4, 5, 6, 9].map(count => (
+                        <div className="flex gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                            {tableOptions.map(({ count, label, description }) => (
                                 <button
                                     key={count}
                                     onClick={() => {
@@ -77,19 +83,20 @@ export function SetupForm({ onStart }: SetupFormProps) {
                                         // Auto advance for better UX
                                         setStep('position');
                                     }}
-                                    className={`aspect-square min-h-[60px] rounded-xl border-2 text-xl font-bold transition-all
+                                    className={`flex-1 py-4 rounded-lg text-center transition-all
                                         ${config.playerCount === count
-                                            ? 'bg-poker-hero/20 border-poker-hero text-poker-hero'
-                                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600 hover:bg-slate-900 group'
+                                            ? 'bg-poker-hero/20 text-poker-hero shadow-[0_0_15px_-3px_rgba(43,212,182,0.3)]'
+                                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                                         }`}
                                 >
-                                    {count}
-                                    <span className="block text-xs font-normal opacity-50">max</span>
+                                    <span className="block text-lg font-bold">{label}</span>
+                                    <span className="block text-xs opacity-60">{description}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
                 );
+            }
 
             case 'position':
                 return (
@@ -100,7 +107,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
                                 What is your position?
                             </h3>
                             <button onClick={() => setStep('count')} className="text-xs text-slate-500 hover:text-slate-300">
-                                Change Players
+                                Change Format
                             </button>
                         </div>
                         <div className="grid grid-cols-3 gap-2 xs:gap-3">
@@ -207,7 +214,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
 
             <div className="mt-8 text-center">
                 <p className="text-slate-500 text-xs">
-                    Poker Replay Studio v0.1
+                    Replow v0.1
                 </p>
             </div>
         </div>

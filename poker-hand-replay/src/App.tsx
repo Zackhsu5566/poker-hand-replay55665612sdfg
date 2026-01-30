@@ -181,7 +181,7 @@ function App() {
   return (
     <div className="h-screen bg-slate-950 text-slate-50 flex flex-col font-sans selection:bg-poker-hero/30 overflow-hidden">
       <header className="flex-shrink-0 p-3 border-b border-[rgba(255,255,255,0.10)] flex justify-between items-center bg-slate-950 backdrop-blur z-50">
-        <h1 className="text-xl font-bold tracking-tight text-slate-50">PokerStudio</h1>
+        <h1 className="text-xl font-bold tracking-tight text-slate-50">Replow</h1>
         {view === 'play' && (
           <div className="flex items-center gap-4">
             <span className="text-xs text-slate-500 uppercase">

@@ -84,7 +84,7 @@ export function ReplayControls({
                 {/* Play/Pause */}
                 <Button
                     variant="default"
-                    size="lg"
+                    size="icon"
                     onClick={isPlaying ? onPause : onPlay}
                     className="w-14 h-14 rounded-full bg-poker-hero hover:bg-poker-hero/85"
                 >

@@ -76,17 +76,24 @@
 }
 
 /* Replay Animations */
+
+/* Deal animation - slide in with slight bounce */
 @keyframes card-deal {
-  from {
-    transform: translateY(-30px);
+  0% {
+    transform: translateY(-50px) rotate(-5deg);
     opacity: 0;
   }
-  to {
-    transform: translateY(0);
+  60% {
+    transform: translateY(5px) rotate(1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
     opacity: 1;
   }
 }
 
+/* Flip animation - rotate the inner container */
 @keyframes card-flip {
   0% {
     transform: rotateY(180deg);
@@ -96,6 +103,33 @@
     transform: rotateY(0deg);
     opacity: 1;
   }
+}
+
+/* 3D flip container */
+.card-flip-container {
+  perspective: 1000px;
+  position: relative;
+}
+
+.card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}
+
+.card-front {
+  transform: rotateY(0deg);
 }
 
 @keyframes fade-in-up {
@@ -130,12 +164,14 @@
 }
 
 .animate-card-deal {
-  animation: card-deal 0.3s ease-out;
+  animation: card-deal 0.3s ease-out forwards;
+  will-change: transform, opacity;
 }
 
 .animate-card-flip {
-  animation: card-flip 0.4s ease-in-out;
+  animation: card-flip 0.4s ease-in-out forwards;
   transform-style: preserve-3d;
+  will-change: transform, opacity;
 }
 
 .animate-fade-in-up {

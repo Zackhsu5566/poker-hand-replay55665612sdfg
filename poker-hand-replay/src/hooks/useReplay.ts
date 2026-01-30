@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { HandHistory, Player, Action, Street, PlaybackSpeed, ReplaySnapshot } from "@/types";
 
 interface UseReplayOptions {
@@ -36,11 +36,17 @@ const STREET_CARD_COUNT: Record<Street, number> = {
 };
 
 const BASE_DELAY_MS = 1500;
+const STREET_REVEAL_DELAY_MS = 700; // Delay for card reveal animation
+const STREET_ABSORB_DELAY_MS = 800; // Pause after reveal before showing first action of new street
 
 export function useReplay({ hand, onComplete }: UseReplayOptions): UseReplayReturn {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentActionIndex, setCurrentActionIndex] = useState(-1);
     const [playbackSpeed, setPlaybackSpeed] = useState<PlaybackSpeed>(1);
+    // When set, reveals this street's cards before advancing to the next action
+    const [revealingStreet, setRevealingStreet] = useState<Street | null>(null);
+    // Ref to track the current reveal timer for proper cleanup
+    const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Identify blind actions (forced bets at the start of preflop)
     const blindActions = useMemo(() => {
@@ -139,6 +145,10 @@ export function useReplay({ hand, onComplete }: UseReplayOptions): UseReplayRetu
             if (boardCardCount >= 5) currentStreet = 'river';
             else if (boardCardCount >= 4) currentStreet = 'turn';
             else if (boardCardCount >= 3) currentStreet = 'flop';
+        } else if (revealingStreet) {
+            // During street reveal phase, show the new street's cards
+            // but keep currentStreet as the previous street (for action display)
+            cardCount = STREET_CARD_COUNT[revealingStreet];
         } else {
             cardCount = STREET_CARD_COUNT[currentStreet];
         }
@@ -195,11 +205,39 @@ export function useReplay({ hand, onComplete }: UseReplayOptions): UseReplayRetu
             visibleActions,
             lastAction
         };
-    }, [hand, currentActionIndex, initialStacks, blindActions, voluntaryActions, totalVoluntaryActions]);
+    }, [hand, currentActionIndex, initialStacks, blindActions, voluntaryActions, totalVoluntaryActions, revealingStreet]);
 
-    // Auto-play effect
+    // Effect 1: Handle street reveal timing with two phases:
+    // Phase 1: Card animation (STREET_REVEAL_DELAY_MS)
+    // Phase 2: Absorption pause before showing action (STREET_ABSORB_DELAY_MS)
     useEffect(() => {
-        if (!isPlaying) return;
+        if (!revealingStreet || !isPlaying) return;
+
+        // Phase 1: Wait for card flip animation
+        const revealDelay = STREET_REVEAL_DELAY_MS / playbackSpeed;
+
+        revealTimerRef.current = setTimeout(() => {
+            // Phase 2: Wait for user to absorb the new board
+            const absorbDelay = STREET_ABSORB_DELAY_MS / playbackSpeed;
+
+            revealTimerRef.current = setTimeout(() => {
+                setRevealingStreet(null);
+                setCurrentActionIndex(prev => prev + 1);
+            }, absorbDelay);
+        }, revealDelay);
+
+        return () => {
+            if (revealTimerRef.current) {
+                clearTimeout(revealTimerRef.current);
+                revealTimerRef.current = null;
+            }
+        };
+    }, [revealingStreet, isPlaying, playbackSpeed]);
+
+    // Effect 2: Handle normal action advance and detect street transitions
+    useEffect(() => {
+        // Skip if not playing or currently revealing a street
+        if (!isPlaying || revealingStreet) return;
 
         if (currentActionIndex >= totalVoluntaryActions - 1) {
             setIsPlaying(false);
@@ -207,13 +245,29 @@ export function useReplay({ hand, onComplete }: UseReplayOptions): UseReplayRetu
             return;
         }
 
+        // Get current and next action's streets
+        const currentAction = currentActionIndex >= 0 ? voluntaryActions[currentActionIndex] : null;
+        const nextAction = voluntaryActions[currentActionIndex + 1];
+        const currentStreetFromAction = currentAction?.street || 'preflop';
+        const nextStreet = nextAction?.street || 'preflop';
+
+        // Check if we need to reveal a new street first
+        const isStreetTransition = nextStreet !== currentStreetFromAction;
+
+        if (isStreetTransition) {
+            // Street transition - start reveal phase, Effect 1 will handle the timing
+            setRevealingStreet(nextStreet);
+            return;
+        }
+
+        // Normal action advance (no street transition)
         const delay = BASE_DELAY_MS / playbackSpeed;
         const timer = setTimeout(() => {
             setCurrentActionIndex(prev => prev + 1);
         }, delay);
 
         return () => clearTimeout(timer);
-    }, [isPlaying, currentActionIndex, totalVoluntaryActions, playbackSpeed, onComplete]);
+    }, [isPlaying, currentActionIndex, totalVoluntaryActions, playbackSpeed, onComplete, voluntaryActions, revealingStreet]);
 
     const play = useCallback(() => {
         if (!hand) return;
@@ -258,6 +312,7 @@ export function useReplay({ hand, onComplete }: UseReplayOptions): UseReplayRetu
     const reset = useCallback(() => {
         setIsPlaying(false);
         setCurrentActionIndex(-1);
+        setRevealingStreet(null);
     }, []);
 
     return {
