@@ -262,7 +262,7 @@ function App() {
               headerCollapsed ? 'max-h-0 opacity-0' : 'max-h-16 opacity-100'
             }`}
           >
-            <div className="p-3 flex justify-between items-center">
+            <div className="px-3 pt-4 pb-3 flex justify-between items-center">
               <h1 className="text-xl font-bold tracking-tight text-slate-50">Replow</h1>
               <div className="flex items-center gap-4">
                 <span className="text-xs text-slate-500 uppercase">
@@ -280,7 +280,7 @@ function App() {
         </div>
       ) : (
         /* Standard Header for Desktop & Setup/Replay views */
-        <header className="flex-shrink-0 p-3 border-b border-[rgba(255,255,255,0.10)] flex justify-between items-center bg-slate-950 backdrop-blur z-50 pt-safe">
+        <header className="flex-shrink-0 px-3 pt-4 pb-3 border-b border-[rgba(255,255,255,0.10)] flex justify-between items-center bg-slate-950 backdrop-blur z-50">
           <h1 className="text-xl font-bold tracking-tight text-slate-50">Replow</h1>
           {view === 'play' && (
             <div className="flex items-center gap-4">
