@@ -43,8 +43,8 @@ export function TextExportModal({ hand, onClose }: TextExportModalProps) {
     }, [showFallback]);
 
     return (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-900 border border-[rgba(255,255,255,0.10)] rounded-xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-surface-overlay flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-900 border border-border-subtle rounded-xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4 flex-shrink-0">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">

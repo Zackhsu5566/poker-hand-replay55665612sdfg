@@ -73,11 +73,11 @@ export function PlayerSeat({
             {/* Avatar/Info Box */}
             <div
                 className={cn(
-                    "relative rounded-lg border flex flex-col items-center justify-center transition-all bg-[rgba(16,22,36,0.75)] backdrop-blur-[14px]",
+                    "relative rounded-lg border flex flex-col items-center justify-center transition-all bg-surface-glass backdrop-blur-[14px]",
                     compact
                         ? "min-w-[60px] px-1.5 pt-2.5 pb-0.5"
                         : "min-w-[72px] xs:min-w-[85px] sm:min-w-[100px] px-2 xs:px-3 pt-3 pb-1 xs:pt-3.5 xs:pb-1.5",
-                    isActivePosition ? "border-[rgba(43,212,182,0.35)] shadow-[0_0_15px_-3px_rgba(43,212,182,0.3)]" : "border-[rgba(255,255,255,0.10)]",
+                    isActivePosition ? "border-border-hero shadow-glow-hero" : "border-border-subtle",
                     !player.isActive && "opacity-50 grayscale"
                 )}
             >

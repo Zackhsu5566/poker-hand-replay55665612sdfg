@@ -224,15 +224,15 @@ export function Table({
         return (
             <div className="relative w-full aspect-[3/4] max-w-[400px] mx-auto flex items-center justify-center">
                 {/* Table Structure - Portrait Ellipse */}
-                <div className="absolute inset-[4%] rounded-[50%] bg-gradient-to-b from-[#1B2333] to-[#0F131B] shadow-[0_18px_60px_rgba(0,0,0,0.65)] p-3 ring-1 ring-white/5">
+                <div className="absolute inset-[4%] rounded-[50%] bg-gradient-to-b from-table-rail to-slate-850 shadow-table p-3 ring-1 ring-white/5">
                     {/* Felt */}
-                    <div className="relative w-full h-full rounded-[50%] bg-[#0F131B] overflow-hidden shadow-[inset_0_0_0_1px_rgba(43,212,182,0.12)]">
+                    <div className="relative w-full h-full rounded-[50%] bg-slate-850 overflow-hidden shadow-[inset_0_0_0_1px_var(--border-hero-faint)]">
                         {/* Felt Gradient */}
-                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1A2232] to-[#0F131B] opacity-80" />
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-850 opacity-80" />
 
                         {/* Center Cluster: Community Cards + Pot */}
                         <div className="absolute inset-0 flex items-center justify-center z-10">
-                            <div className="flex flex-col items-center gap-2 -mt-4">
+                            <div className="flex flex-col items-center gap-2">
                                 <CommunityCards
                                     cards={communityCards}
                                     compact={true}
@@ -242,7 +242,7 @@ export function Table({
                                 />
                                 <div className="flex items-center justify-center gap-1.5">
                                     <ChipStack count={pot >= 20 ? 3 : pot >= 5 ? 2 : 1} chipSize={16} />
-                                    <span className="text-[#C9A86A] text-xs tracking-widest font-mono font-bold" style={{ textShadow: '0 1px 8px rgba(201,168,106,0.3)' }}>
+                                    <span className="text-poker-pot text-xs tracking-widest font-mono font-bold text-glow-pot">
                                         {pot} BB
                                     </span>
                                 </div>
@@ -284,7 +284,7 @@ export function Table({
                             style={getChipPositionStyle(idx)}
                         >
                             <PokerChip size={18} shadow={false} />
-                            <span className="text-[10px] font-mono font-bold text-[#C9A86A] drop-shadow-md">{currentBet}</span>
+                            <span className="text-[10px] font-mono font-bold text-poker-pot drop-shadow-md">{currentBet}</span>
                         </div>
                     );
                 })}
@@ -296,11 +296,11 @@ export function Table({
     return (
         <div className="relative w-full max-w-5xl aspect-[2/1] mx-auto flex items-center justify-center">
             {/* Table Structure */}
-            <div className="absolute inset-0 rounded-[50%] bg-gradient-to-b from-[#1B2333] to-[#0F131B] shadow-[0_18px_60px_rgba(0,0,0,0.65)] p-4 sm:p-5 ring-1 ring-white/5">
+            <div className="absolute inset-0 rounded-[50%] bg-gradient-to-b from-table-rail to-slate-850 shadow-table p-4 sm:p-5 ring-1 ring-white/5">
                 {/* Felt */}
-                <div className="relative w-full h-full rounded-[50%] bg-[#0F131B] overflow-hidden shadow-[inset_0_0_0_1px_rgba(43,212,182,0.12)]">
+                <div className="relative w-full h-full rounded-[50%] bg-slate-850 overflow-hidden shadow-[inset_0_0_0_1px_var(--border-hero-faint)]">
                     {/* Felt Gradient */}
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1A2232] to-[#0F131B] opacity-80" />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-850 opacity-80" />
 
                     {/* Community Cards & Pot Center */}
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -313,7 +313,7 @@ export function Table({
                             />
                             <div className="flex items-center justify-center gap-2">
                                 <ChipStack count={pot >= 20 ? 3 : pot >= 5 ? 2 : 1} chipSize={20} />
-                                <span className="text-[#C9A86A] text-sm tracking-widest font-mono font-bold" style={{ textShadow: '0 1px 8px rgba(201,168,106,0.3)' }}>
+                                <span className="text-poker-pot text-sm tracking-widest font-mono font-bold text-glow-pot">
                                     {pot} BB
                                 </span>
                             </div>
@@ -354,7 +354,7 @@ export function Table({
                         style={getChipPositionStyle(idx)}
                     >
                         <PokerChip size={22} shadow={false} />
-                        <span className="text-xs font-mono font-bold text-[#C9A86A] drop-shadow-md">{currentBet}</span>
+                        <span className="text-xs font-mono font-bold text-poker-pot drop-shadow-md">{currentBet}</span>
                     </div>
                 );
             })}

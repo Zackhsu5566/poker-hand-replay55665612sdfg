@@ -245,7 +245,7 @@ function App() {
           {/* Handle - always visible */}
           <button
             onClick={toggleHeader}
-            className="w-full bg-slate-950 border-b border-[rgba(255,255,255,0.10)] flex items-center justify-center pt-safe transition-colors active:bg-slate-900"
+            className="w-full bg-slate-950 border-b border-border-subtle flex items-center justify-center pt-safe transition-colors active:bg-slate-900"
             style={{ height: headerCollapsed ? '28px' : '0px', paddingTop: 'env(safe-area-inset-top)' }}
             aria-label={headerCollapsed ? 'Expand header' : 'Collapse header'}
             aria-expanded={!headerCollapsed}
@@ -258,7 +258,7 @@ function App() {
 
           {/* Expandable content */}
           <div
-            className={`overflow-hidden transition-all duration-200 ease-out bg-slate-950 border-b border-[rgba(255,255,255,0.10)] ${
+            className={`overflow-hidden transition-all duration-200 ease-out bg-slate-950 border-b border-border-subtle ${
               headerCollapsed ? 'max-h-0 opacity-0' : 'max-h-16 opacity-100'
             }`}
           >
@@ -280,7 +280,7 @@ function App() {
         </div>
       ) : (
         /* Standard Header for Desktop & Setup/Replay views */
-        <header className="flex-shrink-0 px-3 pt-4 pb-3 border-b border-[rgba(255,255,255,0.10)] flex justify-between items-center bg-slate-950 backdrop-blur z-50">
+        <header className="flex-shrink-0 px-3 pt-4 pb-3 border-b border-border-subtle flex justify-between items-center bg-slate-950 backdrop-blur z-50">
           <h1 className="text-xl font-bold tracking-tight text-slate-50">Replow</h1>
           {view === 'play' && (
             <div className="flex items-center gap-4">
@@ -452,7 +452,7 @@ function App() {
                   {/* View Replay button */}
                   <button
                     onClick={handleFinishAndReplay}
-                    className="w-full py-2 bg-poker-hero hover:bg-poker-hero/85 rounded-xl font-bold text-white text-sm shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
+                    className="w-full py-2 bg-poker-hero hover:bg-poker-hero/85 rounded-xl font-bold text-white text-sm shadow-elevated"
                   >
                     View Replay →
                   </button>

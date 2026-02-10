@@ -38,32 +38,53 @@ export default {
                     DEFAULT: 'hsl(var(--card))',
                     foreground: 'hsl(var(--card-foreground))'
                 },
-                // Premium Black Palette
+                // Slate scale (graphite + yale)
                 slate: {
-                    950: '#050608', // App background (near-black)
-                    900: '#0B0E14', // Primary surface
-                    850: '#0F131B', // Felt base
-                    800: '#1A2232', // Borders / secondary surface
-                    700: '#243047', // Lighter borders
-                    600: '#2E3B50', // Hover states
-                    500: '#6B7683', // Tertiary / muted text
-                    400: '#9AA6B2', // Secondary text
-                    300: '#C0C8D2', // Light secondary
-                    200: '#E8EEF7', // Near-white
-                    100: '#F0F4FA', // Card face
-                    50: '#E8EEF7',  // Primary text
+                    950: '#171717',
+                    900: '#1F2127',
+                    850: '#12212C',
+                    800: '#1C3445',
+                    700: '#284B63',
+                    600: '#2A5D63',
+                    500: '#738A99',
+                    400: '#9EAEB8',
+                    300: '#BEC9D0',
+                    200: '#D9D9D9',
+                    100: '#F5F7F8',
+                    50: '#FFFFFF',
                 },
+                // Poker palette
                 poker: {
-                    bet: '#18A572',       // Action / success
+                    hero: '#35968C',
+                    bet: '#18A572',
                     'bet-hover': '#1DBB83',
-                    fold: '#E5484D',      // Danger
+                    fold: '#E5484D',
                     'fold-hover': '#F05B61',
-                    hero: '#2BD4B6',      // Teal accent
-                    allin: '#C9A86A',     // Premium gold
-                    pot: '#C9A86A',       // Premium gold
-                    check: '#1A2232',     // Neutral
-                    'check-hover': '#243047',
-                }
+                    pot: '#C9A86A',
+                    allin: '#C9A86A',
+                    check: '#1C3445',
+                    'check-hover': '#284B63',
+                },
+                // Surfaces & borders
+                'border-subtle': 'var(--border-subtle)',
+                'border-subtle-soft': 'var(--border-subtle-soft)',
+                'border-hero': 'var(--border-hero)',
+                'border-hero-soft': 'var(--border-hero-soft)',
+                'border-hero-faint': 'var(--border-hero-faint)',
+                'surface-glass': 'var(--surface-glass)',
+                'surface-glass-light': 'var(--surface-glass-light)',
+                'surface-sunken': 'var(--surface-sunken)',
+                'surface-overlay': 'var(--surface-overlay)',
+                // Table tokens
+                'table-rail': '#1C3445',
+                'table-board': '#12212C',
+                // Card tokens
+                'card-back': '#12212C',
+            },
+            boxShadow: {
+                'glow-hero': '0 0 15px -3px rgba(53,150,140,0.35)',
+                'elevated': '0 6px 16px rgba(0,0,0,0.4)',
+                'table': '0 18px 60px rgba(0,0,0,0.65)',
             },
             borderRadius: {
                 lg: 'var(--radius)',

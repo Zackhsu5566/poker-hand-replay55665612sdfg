@@ -27,14 +27,29 @@ export function Card({
     };
 
     // Card back design (used in hidden state and flip animation)
+    // Base: #12212C (deep blue-graphite). Motif: concentric ring (Option 1).
     const renderCardBack = () => (
         <div
             className={cn(
-                "bg-[#101624] border-2 border-[rgba(43,212,182,0.25)] shadow-sm flex items-center justify-center select-none",
+                "relative overflow-hidden select-none flex items-center justify-center",
                 sizeClasses[size]
             )}
+            style={{
+                backgroundColor: '#12212C',
+                boxShadow: '0 0 0 1.5px #25445B, inset 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)'
+            }}
         >
-            <div className="w-1/2 h-1/2 bg-poker-hero/20 rounded-full" />
+            {/* Inset border frame */}
+            <div
+                className="absolute inset-[3px] rounded-[2px] pointer-events-none"
+                style={{ border: '1px solid rgba(28,52,69,0.4)' }}
+            />
+            {/* Center motif: embossed concentric ring */}
+            <svg viewBox="0 0 24 24" className="w-[28%] aspect-square" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="#1C3445" strokeWidth="1.2" opacity="0.55" />
+                <circle cx="12" cy="12" r="5.5" fill="none" stroke="#1C3445" strokeWidth="0.8" opacity="0.35" />
+                <circle cx="12" cy="12" r="1.2" fill="#1C3445" opacity="0.3" />
+            </svg>
         </div>
     );
 
@@ -48,7 +63,7 @@ export function Card({
             <div
                 className={cn(
                     "bg-slate-100 flex flex-col items-center justify-between p-[0.1em] shadow-sm select-none relative overflow-hidden",
-                    isRed ? "text-red-600" : "text-slate-950",
+                    isRed ? "text-card-suit-red" : "text-slate-950",
                     sizeClasses[size]
                 )}
             >
@@ -134,7 +149,7 @@ export function Card({
                 key={`deal-${animationToken}`}
                 className={cn(
                     "bg-slate-100 flex flex-col items-center justify-between p-[0.1em] shadow-sm select-none relative overflow-hidden animate-card-deal",
-                    isRed ? "text-red-600" : "text-slate-950",
+                    isRed ? "text-card-suit-red" : "text-slate-950",
                     sizeClasses[size],
                     className
                 )}
@@ -170,7 +185,7 @@ export function Card({
         <div
             className={cn(
                 "bg-slate-100 flex flex-col items-center justify-between p-[0.1em] shadow-sm select-none relative overflow-hidden",
-                isRed ? "text-red-600" : "text-slate-950",
+                isRed ? "text-card-suit-red" : "text-slate-950",
                 sizeClasses[size],
                 className
             )}

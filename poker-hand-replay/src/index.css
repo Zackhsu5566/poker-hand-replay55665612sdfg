@@ -1,66 +1,56 @@
 @import "tailwindcss";
+@config "../tailwind.config.js";
 
 @layer base {
   :root {
-    --background: 220 23% 2.5%;
-    --foreground: 216 56% 94%;
+    --background: 206 42% 8%;
+    --foreground: 0 0% 100%;
 
-    --card: 220 29% 6%;
-    --card-foreground: 216 56% 94%;
+    --card: 205 42% 18%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 220 29% 6%;
-    --popover-foreground: 216 56% 94%;
+    --popover: 205 42% 18%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 216 56% 94%;
-    --primary-foreground: 220 29% 6%;
+    --primary: 204 42% 27%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 218 32% 15%;
-    --secondary-foreground: 216 56% 94%;
+    --secondary: 206 20% 14%;
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 218 32% 15%;
-    --muted-foreground: 210 12% 65%;
+    --muted: 206 20% 14%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 218 32% 15%;
-    --accent-foreground: 216 56% 94%;
+    --accent: 204 42% 27%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 358 74% 53%;
-    --destructive-foreground: 216 56% 94%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 218 32% 15%;
-    --input: 218 32% 15%;
-    --ring: 168 66% 50%;
+    --border: 206 20% 18%;
+    --input: 206 20% 18%;
+    --ring: 183 31% 34%;
 
     --radius: 0.5rem;
-  }
 
-  .dark {
-    --background: 220 23% 2.5%;
-    --foreground: 216 56% 94%;
+    /* Semantic border tokens (fixed hex) */
+    --border-subtle: #1C3445;
+    --border-subtle-soft: #12212C;
+    --border-hero: #2A5D63;
+    --border-hero-soft: #1E454A;
+    --border-hero-faint: #0F2627;
 
-    --card: 220 29% 6%;
-    --card-foreground: 216 56% 94%;
+    /* Semantic surface tokens (fixed hex) */
+    --surface-glass: #12212C;
+    --surface-glass-light: #1F2127;
+    --surface-sunken: #0B0C0F;
+    --surface-overlay: #0A0A0C;
 
-    --popover: 220 29% 6%;
-    --popover-foreground: 216 56% 94%;
+    /* Card tokens */
+    --card-suit-red: #dc2626;
 
-    --primary: 216 56% 94%;
-    --primary-foreground: 220 29% 6%;
-
-    --secondary: 218 32% 15%;
-    --secondary-foreground: 216 56% 94%;
-
-    --muted: 218 32% 15%;
-    --muted-foreground: 210 12% 65%;
-
-    --accent: 218 32% 15%;
-    --accent-foreground: 216 56% 94%;
-
-    --destructive: 358 74% 53%;
-    --destructive-foreground: 216 56% 94%;
-
-    --border: 218 32% 15%;
-    --input: 218 32% 15%;
-    --ring: 168 66% 50%;
+    /* Glow tokens */
+    --glow-pot: 0 1px 8px rgba(201,168,106,0.3);
   }
 }
 
@@ -211,4 +201,14 @@
 .scrollbar-thumb-slate-700::-webkit-scrollbar-thumb {
   background-color: #243047;
   border-radius: 3px;
+}
+
+/* Pot text glow utility */
+.text-glow-pot {
+  text-shadow: var(--glow-pot);
+}
+
+/* Card suit color utility */
+.text-card-suit-red {
+  color: var(--card-suit-red);
 }

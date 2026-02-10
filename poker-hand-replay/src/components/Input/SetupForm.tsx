@@ -85,7 +85,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
                                     }}
                                     className={`flex-1 py-4 rounded-lg text-center transition-all
                                         ${config.playerCount === count
-                                            ? 'bg-poker-hero/20 text-poker-hero shadow-[0_0_15px_-3px_rgba(43,212,182,0.3)]'
+                                            ? 'bg-poker-hero/20 text-poker-hero shadow-glow-hero'
                                             : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                                         }`}
                                 >
@@ -117,7 +117,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
                                     onClick={() => setConfig({ ...config, heroPosition: pos })}
                                     className={`py-3 xs:py-4 min-h-[48px] rounded-lg border-2 text-sm font-bold transition-all
                                         ${config.heroPosition === pos
-                                            ? 'bg-poker-hero/20 border-poker-hero text-poker-hero shadow-[0_0_15px_-3px_rgba(43,212,182,0.3)]'
+                                            ? 'bg-poker-hero/20 border-poker-hero text-poker-hero shadow-glow-hero'
                                             : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600 hover:bg-slate-900'
                                         }`}
                                 >
@@ -186,7 +186,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
 
     return (
         <div className="w-full max-w-md mx-auto p-1">
-            <div className="bg-[rgba(255,255,255,0.06)] backdrop-blur-[14px] border border-[rgba(255,255,255,0.10)] rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-surface-glass-light backdrop-blur-[14px] border border-border-subtle rounded-2xl shadow-2xl overflow-hidden">
                 {/* Progress Bar */}
                 <div className="flex h-1 bg-slate-950">
                     <div className={`h-full bg-poker-hero transition-all duration-300 ${step === 'count' ? 'w-1/3' : step === 'position' ? 'w-2/3' : 'w-full'}`} />
@@ -196,7 +196,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
                     {renderStepContent()}
                 </div>
 
-                <div className="p-6 bg-[rgba(0,0,0,0.2)] border-t border-[rgba(255,255,255,0.08)] flex justify-end">
+                <div className="p-6 bg-surface-sunken border-t border-border-subtle flex justify-end">
                     {step !== 'count' && (
                         <Button
                             onClick={handleNext}

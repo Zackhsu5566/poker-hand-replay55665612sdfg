@@ -25,7 +25,7 @@ export function EquityDisplay({ equity, potOdds }: EquityDisplayProps) {
     const isProfitableCall = potOdds && equity.heroEquity > potOdds.breakeven;
 
     return (
-        <div className="bg-[rgba(16,22,36,0.75)] backdrop-blur-[14px] border border-[rgba(255,255,255,0.10)] rounded-lg p-3 w-28 shadow-lg">
+        <div className="bg-surface-glass backdrop-blur-[14px] border border-border-subtle rounded-lg p-3 w-28 shadow-lg">
             {/* Equity percentage - large and centered */}
             <div className="text-center mb-2">
                 <div className={`text-2xl font-mono font-bold ${getEquityTextColor(equity.heroEquity)}`}>
@@ -51,7 +51,7 @@ export function EquityDisplay({ equity, potOdds }: EquityDisplayProps) {
 
             {/* Pot odds (when facing bet) */}
             {potOdds && potOdds.toCall > 0 && (
-                <div className="mt-2 pt-2 border-t border-[rgba(255,255,255,0.10)]">
+                <div className="mt-2 pt-2 border-t border-border-subtle">
                     <div className="text-center">
                         <div className="text-sm font-mono text-poker-pot font-bold">
                             {potOdds.percentage.toFixed(0)}%

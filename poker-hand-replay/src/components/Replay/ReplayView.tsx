@@ -81,7 +81,7 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
     return (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Header */}
-            <div className="flex-shrink-0 bg-slate-900 border-b border-[rgba(255,255,255,0.10)] px-4 py-2 flex items-center justify-between">
+            <div className="flex-shrink-0 bg-slate-900 border-b border-border-subtle px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onExit}
@@ -140,8 +140,8 @@ export function ReplayView({ hand, onExit }: ReplayViewProps) {
 
             {/* End of Hand Modal */}
             {showEndModal && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in-up">
-                    <div className="bg-slate-900 border border-[rgba(255,255,255,0.10)] rounded-xl p-6 max-w-sm w-full shadow-2xl">
+                <div className="fixed inset-0 bg-surface-overlay flex items-center justify-center z-50 p-4 animate-fade-in-up">
+                    <div className="bg-slate-900 border border-border-subtle rounded-xl p-6 max-w-sm w-full shadow-2xl">
                         {/* Header */}
                         <div className="text-center mb-6">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-poker-hero to-poker-hero/60 flex items-center justify-center">

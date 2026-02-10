@@ -9,9 +9,12 @@ interface PokerChipProps {
 }
 
 /**
- * Realistic casino chip rendered as inline SVG.
- * Smooth rounded edge, matte clay/composite body,
- * off-white printed inlay, top-left key light, subtle rim light.
+ * Casino chip rendered as inline SVG.
+ * Direction A — CNC engraved metal, 12 grooves, center=40%.
+ * Yale-Blue palette, self-contained colors.
+ *
+ * Geometry (R=46): rim 1.00R→0.86R, body 0.86R→0.40R,
+ * center disc 0.40R, dot 0.06R. Grooves every 30°.
  */
 export function PokerChip({ size = 22, shadow = true, className }: PokerChipProps) {
     return (
@@ -22,53 +25,67 @@ export function PokerChip({ size = 22, shadow = true, className }: PokerChipProp
             className={cn("flex-shrink-0", className)}
             aria-hidden="true"
         >
+            <defs>
+                {/* Body gradient: subtle blue-graphite depth */}
+                <radialGradient id="chip-body" cx="42%" cy="40%">
+                    <stop offset="0%" stopColor="#172A38" />
+                    <stop offset="100%" stopColor="#12212C" />
+                </radialGradient>
+                {/* Center disc gradient: cool neutral silver */}
+                <radialGradient id="chip-disc" cx="44%" cy="42%">
+                    <stop offset="0%" stopColor="#CBD2D8" />
+                    <stop offset="100%" stopColor="#BFC6CC" />
+                </radialGradient>
+            </defs>
+
             {/* ── Contact shadow ── */}
             {shadow && (
-                <ellipse
-                    cx="50" cy="96" rx="34" ry="4"
-                    fill="rgba(0,0,0,0.30)"
-                />
+                <ellipse cx="50" cy="96" rx="32" ry="4" fill="rgba(0,0,0,0.35)" />
             )}
 
-            {/* ── Chip body (dark charcoal clay) ── */}
-            <circle cx="50" cy="50" r="46" fill="#2A2F36" />
+            {/* ── Outer rim edge (dark border) ── */}
+            <circle cx="50" cy="50" r="46" fill="#0E1820" />
 
-            {/* ── Smooth edge band (lighter ring for depth) ── */}
-            <circle cx="50" cy="50" r="43" fill="none" stroke="rgba(169,177,188,0.13)" strokeWidth="6" />
+            {/* ── Rim surface (lighter band) ── */}
+            <circle cx="50" cy="50" r="44.5" fill="#1C3445" />
 
-            {/* ── Thin outer edge highlight (light catching the rim) ── */}
-            <circle cx="50" cy="50" r="45.5" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" />
+            {/* ── Body / engraved zone ── */}
+            <circle cx="50" cy="50" r="39.5" fill="url(#chip-body)" />
 
-            {/* ── Mid-gray groove ring ── */}
-            <circle cx="50" cy="50" r="36" fill="none" stroke="#606873" strokeWidth="1.2" />
+            {/* ── Machined step: rim → body ── */}
+            <circle cx="50" cy="50" r="39.5" fill="none" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
 
-            {/* ── Inlay background (off-white printed disc) ── */}
-            <circle cx="50" cy="50" r="28" fill="#E6EAF0" />
+            {/* ── 12 engraved grooves (0.86R → 0.40R) ── */}
+            {Array.from({ length: 12 }, (_, i) => i * 30).map(angle => (
+                <line
+                    key={angle}
+                    x1="50" y1="10.5" x2="50" y2="31.5"
+                    stroke="#091520"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity="0.45"
+                    transform={`rotate(${angle} 50 50)`}
+                />
+            ))}
 
-            {/* ── Inlay inner ring (printed border) ── */}
-            <circle cx="50" cy="50" r="24" fill="none" stroke="#B8BFC9" strokeWidth="0.8" />
+            {/* ── Rim highlight (subtle full circumference) ── */}
+            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
 
-            {/* ── Inlay centre dot (denomination marker) ── */}
-            <circle cx="50" cy="50" r="4" fill="#1A1F26" opacity="0.18" />
+            {/* ── Center disc ── */}
+            <circle cx="50" cy="50" r="18.5" fill="url(#chip-disc)" />
 
-            {/* ── Subtle wear marks ── */}
-            <line x1="35" y1="38" x2="42" y2="40" stroke="rgba(0,0,0,0.04)" strokeWidth="0.6" strokeLinecap="round" />
-            <line x1="58" y1="56" x2="64" y2="58" stroke="rgba(0,0,0,0.03)" strokeWidth="0.5" strokeLinecap="round" />
+            {/* ── Center disc border ── */}
+            <circle cx="50" cy="50" r="18.5" fill="none" stroke="#96A0A8" strokeWidth="0.7" />
+
+            {/* ── Center dot ── */}
+            <circle cx="50" cy="50" r="2.8" fill="#12212C" opacity="0.2" />
 
             {/* ── Top-left key light ── */}
-            <circle cx="36" cy="36" r="24" fill="rgba(255,255,255,0.07)" />
+            <circle cx="38" cy="38" r="20" fill="rgba(255,255,255,0.05)" />
 
             {/* ── Bottom-right ambient shadow ── */}
-            <circle cx="62" cy="62" r="22" fill="rgba(0,0,0,0.06)" />
-
-            {/* ── Rim light (very soft, bottom-right arc) ── */}
-            <path
-                d="M 80 65 A 46 46 0 0 0 65 80"
-                fill="none"
-                stroke="rgba(255,255,255,0.06)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-            />
+            <circle cx="62" cy="62" r="18" fill="rgba(0,0,0,0.06)" />
         </svg>
     );
 }

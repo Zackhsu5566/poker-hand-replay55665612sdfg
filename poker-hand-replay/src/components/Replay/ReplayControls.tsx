@@ -33,7 +33,7 @@ export function ReplayControls({
     const atEnd = currentIndex >= totalActions - 1;
 
     return (
-        <div className="bg-slate-900 border-t border-[rgba(255,255,255,0.10)] p-2 sm:p-3 pb-safe space-y-1 sm:space-y-2">
+        <div className="bg-slate-900 border-t border-border-subtle p-2 sm:p-3 pb-safe space-y-1 sm:space-y-2">
             {/* Progress Bar */}
             <div className="relative h-1 sm:h-1.5 bg-slate-700 rounded-full overflow-hidden">
                 <div

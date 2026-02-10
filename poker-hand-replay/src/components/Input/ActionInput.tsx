@@ -208,14 +208,14 @@ export function ActionInput({
             <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-slate-900 border-t border-slate-800 pb-safe">
                 <Button
                     variant="destructive"
-                    className="h-11 text-sm font-bold bg-poker-fold hover:bg-poker-fold-hover rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
+                    className="h-11 text-sm font-bold bg-poker-fold hover:bg-poker-fold-hover rounded-xl shadow-elevated"
                     onClick={() => onAction('fold')}
                 >
                     FOLD
                 </Button>
                 {canCheck && (
                     <Button
-                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
+                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 rounded-xl shadow-elevated"
                         onClick={() => onAction('check')}
                     >
                         CHECK
@@ -247,7 +247,7 @@ export function ActionInput({
             <div className="grid grid-cols-2 xs:grid-cols-4 gap-1.5 p-1.5">
                 <Button
                     variant="destructive"
-                    className="h-11 text-sm font-bold bg-poker-fold hover:bg-poker-fold-hover rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
+                    className="h-11 text-sm font-bold bg-poker-fold hover:bg-poker-fold-hover rounded-xl shadow-elevated"
                     onClick={() => onAction('fold')}
                 >
                     FOLD
@@ -255,14 +255,14 @@ export function ActionInput({
 
                 {canCheck ? (
                     <Button
-                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 xs:col-span-2 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
+                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 xs:col-span-2 rounded-xl shadow-elevated"
                         onClick={() => onAction('check')}
                     >
                         CHECK
                     </Button>
                 ) : (
                     <Button
-                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 xs:col-span-2 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
+                        className="h-11 text-sm font-bold bg-poker-check hover:bg-poker-check-hover text-slate-50 xs:col-span-2 rounded-xl shadow-elevated"
                         onClick={() => onAction('call', effectiveCallAmount)}
                     >
                         {isAllInCall ? 'ALL-IN' : 'CALL'} {effectiveCallAmount > 0 && effectiveCallAmount}
@@ -270,7 +270,7 @@ export function ActionInput({
                 )}
 
                 <Button
-                    className="h-11 text-sm font-bold bg-poker-bet hover:bg-poker-bet-hover text-white col-span-2 xs:col-span-1 rounded-xl shadow-[0_6px_16px_rgba(0,0,0,0.4)]"
+                    className="h-11 text-sm font-bold bg-poker-bet hover:bg-poker-bet-hover text-white col-span-2 xs:col-span-1 rounded-xl shadow-elevated"
                     onClick={handleBetClick}
                     disabled={playerStack <= effectiveCallAmount}
                 >
